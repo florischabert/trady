@@ -7,20 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9D119E951C7CF50D005DED0F /* LaunchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D119E941C7CF50D005DED0F /* LaunchViewController.swift */; };
+		9D119E971C7E9A5E005DED0F /* OFXClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D119E961C7E9A5E005DED0F /* OFXClient.swift */; };
 		9D2E85941C726DAE004AAAD1 /* Position.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2E85931C726DAE004AAAD1 /* Position.swift */; };
-		9D3EFFCC1C65210A00849DB7 /* ETradeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D3EFFCB1C65210A00849DB7 /* ETradeClient.swift */; };
+		9D2EACEC1C813AD6002259B6 /* CWStatusBarNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2EACEB1C813AD6002259B6 /* CWStatusBarNotification.swift */; };
+		9D2EACEE1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2EACED1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift */; };
 		9D3EFFD21C65587D00849DB7 /* Account.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D3EFFD11C65587D00849DB7 /* Account.swift */; };
 		9D582C7B1C7547CB004B0754 /* Charts.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9D582C791C7547CB004B0754 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		9D5A84A91C7C1E9E002E01A3 /* AccountsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5A84A81C7C1E9E002E01A3 /* AccountsViewController.swift */; };
 		9D5A84AB1C7C1F7B002E01A3 /* PositionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5A84AA1C7C1F7B002E01A3 /* PositionViewController.swift */; };
 		9D5A84AD1C7CBFB5002E01A3 /* LinkViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5A84AC1C7CBFB5002E01A3 /* LinkViewController.swift */; };
+		9D67BFFD1C7E9DF7005D5930 /* Credentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D67BFFC1C7E9DF7005D5930 /* Credentials.swift */; };
 		9D9BC9841C644196005F11FC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9BC9831C644196005F11FC /* AppDelegate.swift */; };
 		9D9BC9861C644196005F11FC /* PortfolioViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9BC9851C644196005F11FC /* PortfolioViewController.swift */; };
 		9D9BC9891C644197005F11FC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9D9BC9871C644197005F11FC /* Main.storyboard */; };
 		9D9BC98B1C644197005F11FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9D9BC98A1C644197005F11FC /* Assets.xcassets */; };
 		9D9BC98E1C644197005F11FC /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9D9BC98C1C644197005F11FC /* LaunchScreen.storyboard */; };
-		9D9BC9961C6441A6005F11FC /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = 9D9BC9951C6441A6005F11FC /* Secrets.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -38,15 +38,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		9D119E941C7CF50D005DED0F /* LaunchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LaunchViewController.swift; sourceTree = "<group>"; };
+		9D119E961C7E9A5E005DED0F /* OFXClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OFXClient.swift; sourceTree = "<group>"; };
 		9D2E85931C726DAE004AAAD1 /* Position.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Position.swift; sourceTree = "<group>"; };
+		9D2EACEB1C813AD6002259B6 /* CWStatusBarNotification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CWStatusBarNotification.swift; sourceTree = "<group>"; };
+		9D2EACED1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CWStatusBarNotificationUtils.swift; sourceTree = "<group>"; };
 		9D3EFFCB1C65210A00849DB7 /* ETradeClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ETradeClient.swift; sourceTree = "<group>"; };
 		9D3EFFD11C65587D00849DB7 /* Account.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
 		9D582C791C7547CB004B0754 /* Charts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Charts.framework; path = Carthage/Build/iOS/Charts.framework; sourceTree = "<group>"; };
 		9D5A84A71C7A55CA002E01A3 /* Bridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bridge.h; sourceTree = "<group>"; };
-		9D5A84A81C7C1E9E002E01A3 /* AccountsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountsViewController.swift; sourceTree = "<group>"; };
 		9D5A84AA1C7C1F7B002E01A3 /* PositionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PositionViewController.swift; sourceTree = "<group>"; };
 		9D5A84AC1C7CBFB5002E01A3 /* LinkViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinkViewController.swift; sourceTree = "<group>"; };
+		9D67BFFC1C7E9DF7005D5930 /* Credentials.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Credentials.swift; sourceTree = "<group>"; };
 		9D9BC9801C644196005F11FC /* Trady.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Trady.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D9BC9831C644196005F11FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9D9BC9851C644196005F11FC /* PortfolioViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioViewController.swift; sourceTree = "<group>"; };
@@ -54,7 +56,6 @@
 		9D9BC98A1C644197005F11FC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9D9BC98D1C644197005F11FC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9D9BC98F1C644197005F11FC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		9D9BC9951C6441A6005F11FC /* Secrets.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Secrets.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,11 +77,22 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		9D3EFFD51C6571EB00849DB7 /* Clients */ = {
+		9D2EACEA1C813AB9002259B6 /* Extra */ = {
 			isa = PBXGroup;
 			children = (
 				9D5A84A71C7A55CA002E01A3 /* Bridge.h */,
+				9D2EACEB1C813AD6002259B6 /* CWStatusBarNotification.swift */,
+				9D2EACED1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift */,
+			);
+			name = Extra;
+			path = Trady;
+			sourceTree = "<group>";
+		};
+		9D3EFFD51C6571EB00849DB7 /* Clients */ = {
+			isa = PBXGroup;
+			children = (
 				9D3EFFCB1C65210A00849DB7 /* ETradeClient.swift */,
+				9D119E961C7E9A5E005DED0F /* OFXClient.swift */,
 			);
 			name = Clients;
 			sourceTree = "<group>";
@@ -88,6 +100,7 @@
 		9D3EFFD61C6571FD00849DB7 /* Objects */ = {
 			isa = PBXGroup;
 			children = (
+				9D67BFFC1C7E9DF7005D5930 /* Credentials.swift */,
 				9D2E85931C726DAE004AAAD1 /* Position.swift */,
 				9D3EFFD11C65587D00849DB7 /* Account.swift */,
 			);
@@ -97,8 +110,8 @@
 		9D9BC9771C644196005F11FC = {
 			isa = PBXGroup;
 			children = (
-				9D9BC9951C6441A6005F11FC /* Secrets.plist */,
 				9D9BC9821C644196005F11FC /* Trady */,
+				9D2EACEA1C813AB9002259B6 /* Extra */,
 				9D9BC9811C644196005F11FC /* Products */,
 				3BE5C9FFBA5D84F2660CD85B /* Frameworks */,
 			);
@@ -118,10 +131,8 @@
 				9D3EFFD61C6571FD00849DB7 /* Objects */,
 				9D3EFFD51C6571EB00849DB7 /* Clients */,
 				9D9BC9831C644196005F11FC /* AppDelegate.swift */,
-				9D119E941C7CF50D005DED0F /* LaunchViewController.swift */,
 				9D5A84AC1C7CBFB5002E01A3 /* LinkViewController.swift */,
 				9D9BC9851C644196005F11FC /* PortfolioViewController.swift */,
-				9D5A84A81C7C1E9E002E01A3 /* AccountsViewController.swift */,
 				9D5A84AA1C7C1F7B002E01A3 /* PositionViewController.swift */,
 				9D9BC9871C644197005F11FC /* Main.storyboard */,
 				9D9BC98A1C644197005F11FC /* Assets.xcassets */,
@@ -190,7 +201,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9D9BC9961C6441A6005F11FC /* Secrets.plist in Resources */,
 				9D9BC98E1C644197005F11FC /* LaunchScreen.storyboard in Resources */,
 				9D9BC98B1C644197005F11FC /* Assets.xcassets in Resources */,
 				9D9BC9891C644197005F11FC /* Main.storyboard in Resources */,
@@ -204,13 +214,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9D3EFFCC1C65210A00849DB7 /* ETradeClient.swift in Sources */,
-				9D119E951C7CF50D005DED0F /* LaunchViewController.swift in Sources */,
+				9D2EACEE1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift in Sources */,
+				9D2EACEC1C813AD6002259B6 /* CWStatusBarNotification.swift in Sources */,
+				9D119E971C7E9A5E005DED0F /* OFXClient.swift in Sources */,
+				9D67BFFD1C7E9DF7005D5930 /* Credentials.swift in Sources */,
 				9D3EFFD21C65587D00849DB7 /* Account.swift in Sources */,
 				9D2E85941C726DAE004AAAD1 /* Position.swift in Sources */,
 				9D5A84AB1C7C1F7B002E01A3 /* PositionViewController.swift in Sources */,
 				9D9BC9861C644196005F11FC /* PortfolioViewController.swift in Sources */,
-				9D5A84A91C7C1E9E002E01A3 /* AccountsViewController.swift in Sources */,
 				9D9BC9841C644196005F11FC /* AppDelegate.swift in Sources */,
 				9D5A84AD1C7CBFB5002E01A3 /* LinkViewController.swift in Sources */,
 			);

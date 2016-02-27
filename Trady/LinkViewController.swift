@@ -8,28 +8,73 @@
 
 import UIKit
 
-class LinkViewController: UIViewController {
+class LinkViewController: UIViewController, UITextFieldDelegate {
+
+    @IBOutlet weak var username: UITextField!
+    @IBOutlet weak var password: UITextField!
+    @IBOutlet weak var link: UIButton!
+
+    var app: AppDelegate {
+        return (UIApplication.sharedApplication().delegate as! AppDelegate)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        username.delegate = self
+        password.delegate = self
+
+        username.becomeFirstResponder()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-    
-    @IBAction func tap(sender: AnyObject) {
-        let app = UIApplication.sharedApplication().delegate as! AppDelegate
 
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+    func setWaitState(isWaiting: Bool = true) {
+        username.enabled = !isWaiting
+        password.enabled = !isWaiting
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = isWaiting
+    }
 
-        app.etrade.authorize() {
-            dispatch_async(dispatch_get_main_queue(), {
-                UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-                self.navigationController?.popViewControllerAnimated(false)
-            })
+    func linkAccount(sender: AnyObject) {
+        setWaitState()
+
+        app.ofx.login(username.text!, password.text!) { credentials in
+            if let credentials = credentials {
+                self.app.credentials = credentials
+                self.app.credentials?.saveToKeyChain()
+
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.setWaitState(false)
+                    self.dismissViewControllerAnimated(true) {}
+                }
+            }
+            else {
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.setWaitState(false)
+
+                    let alert = UIAlertController(title: "Login failed", message: "Please verify your username and password and retry.", preferredStyle: UIAlertControllerStyle.Alert)
+                    let alertAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in }
+                    alert.addAction(alertAction)
+                    self.presentViewController(alert, animated: true) {}
+                }
+            }
         }
     }
-    
+
+    func textFieldShouldReturn(textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+
+        if textField == username {
+            password.becomeFirstResponder()
+        }
+        else {
+            linkAccount(self)
+        }
+
+        return true
+    }
+
 }
 

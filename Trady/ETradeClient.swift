@@ -146,7 +146,7 @@ class OAuth {
 
                         self.token = token.stringByRemovingPercentEncoding
                         self.tokenSecret = tokenSecret.stringByRemovingPercentEncoding
-                        (UIApplication.sharedApplication().delegate as! AppDelegate).saveCredentials()
+//                        (UIApplication.sharedApplication().delegate as! AppDelegate).saveCredentials()
 
                         if let completionHandler = self.authorizeCompletionHandler {
                             completionHandler()
@@ -161,14 +161,14 @@ class OAuth {
     private func renewAccessToken(completionHandler: (Void) -> Void) {
         request(renewAccessTokenUrl, renewTokenOnError: false) {
             data, response, error in
-            print(response)
+
             if let parametersString = NSString(data: data!, encoding:NSUTF8StringEncoding) {
                 let responseParameters = (parametersString as String).dictionaryFromHttpParameters()
                 if let token = responseParameters["oauth_token"], tokenSecret = responseParameters["oauth_token_secret"] {
                     self.token = token.stringByRemovingPercentEncoding
                     self.tokenSecret = tokenSecret.stringByRemovingPercentEncoding
 
-                    (UIApplication.sharedApplication().delegate as! AppDelegate).saveCredentials()
+//                    (UIApplication.sharedApplication().delegate as! AppDelegate).saveCredentials()
                 }
             }
 
@@ -318,10 +318,7 @@ class ETradeClient {
                 for accountItem in accountList {
                     let acc = accountItem as! [String: AnyObject]
 
-                    let account = Account(
-                        name: acc["accountDesc"] as! String,
-                        id: acc["accountId"] as! UInt,
-                        value: extractDouble(acc["netAccountValue"]!))
+                    let account = Account(acc["accountId"] as! String)
 
                     self.accounts?.append(account)
                 }

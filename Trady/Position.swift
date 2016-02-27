@@ -9,9 +9,9 @@
 import UIKit
 
 enum Category: String {
-    case Equity = "Equities", ETF = "ETFs", Fund = "Funds", Bond = "Bonds", Cash = "Cash"
-    static let allValues = [Equity, ETF, Fund, Bond, Cash]
-    static let names = [Equity.rawValue, ETF.rawValue, Fund.rawValue, Bond.rawValue, Cash.rawValue]
+    case Equity = "Equities", Fund = "Funds", Bond = "Bonds", Option = "Options", Cash = "Cash"
+    static let allValues = [Equity, Fund, Bond, Option, Cash]
+    static let names = [Equity.rawValue, Fund.rawValue, Bond.rawValue, Option.rawValue, Cash.rawValue]
     static let colors = [
         UIColor(red: CGFloat(0.0/255), green: CGFloat(178.0/255), blue: CGFloat(220.0/255), alpha: 0.8),
         UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 0.8),
@@ -21,22 +21,38 @@ enum Category: String {
     ]
 }
 
-class Position {
+class Position: NSObject, NSCoding {
     var symbol: String
-    var description: String
+    var descr: String?
     var category: Category
 
     var price: Double
-    var basis: Double
 
-    var amount: UInt
+    var quantity: Double
 
-    init(symbol: String, description: String, category: Category, price: Double, basis: Double, amount: UInt) {
+    init(symbol: String, category: Category, price: Double, quantity: Double) {
         self.symbol = symbol
-        self.description = description
         self.category = category
         self.price = price
-        self.basis = basis
-        self.amount = amount
+        self.quantity = quantity
+    }
+
+    required convenience init(coder decoder: NSCoder) {
+        let symbol = decoder.decodeObjectForKey("symbol") as! String
+        let category = Category.allValues[decoder.decodeObjectForKey("category") as! Int]
+        let price = decoder.decodeObjectForKey("price") as! Double
+        let quantity = decoder.decodeObjectForKey("quantity") as! Double
+        let descr = decoder.decodeObjectForKey("descr") as? String
+
+        self.init(symbol: symbol, category: category, price: price, quantity: quantity)
+        self.descr = descr
+    }
+
+    func encodeWithCoder(coder: NSCoder) {
+        coder.encodeObject(symbol, forKey: "symbol")
+        coder.encodeObject(Category.allValues.indexOf(category)!, forKey: "category")
+        coder.encodeObject(price, forKey: "price")
+        coder.encodeObject(quantity, forKey: "quantity")
+        coder.encodeObject(descr, forKey: "descr")
     }
 }

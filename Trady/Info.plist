@@ -41,6 +41,11 @@
 	<dict>
 		<key>NSExceptionDomains</key>
 		<dict>
+			<key>ofx.etrade.com</key>
+			<dict>
+				<key>NSExceptionRequiresForwardSecrecy</key>
+				<false/>
+			</dict>
 			<key>etwssandbox.etrade.com</key>
 			<dict>
 				<key>NSExceptionRequiresForwardSecrecy</key>

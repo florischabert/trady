@@ -8,42 +8,33 @@
 
 import Foundation
 
-class Account {
-    var name: String
-    var id: UInt
-    var value: Double = 0
+class Account: NSObject, NSCoding {
+    let id: String
+    var value: Double
+    var cash: Double
 
     var positions: [Position] = []
 
-    init(name: String, id: UInt, value: Double?) {
-        self.name = name
+    init(_ id: String, value: Double, cash: Double) {
         self.id = id
-
-        if let value = value {
-            self.value = value
-        }
+        self.value = value
+        self.cash = cash
     }
 
-    func positionsForCategory(category: Category) -> [Position] {
-        var positionList: [Position] = []
+    required convenience init(coder decoder: NSCoder) {
+        let id = decoder.decodeObjectForKey("id") as! String
+        let value = decoder.decodeObjectForKey("value") as! Double
+        let cash = decoder.decodeObjectForKey("cash") as! Double
+        let positions = decoder.decodeObjectForKey("positions") as! [Position]
 
-        for position in positions {
-            if position.category == category {
-                positionList += [position]
-            }
-        }
-
-        return positionList
+        self.init(id, value: value, cash: cash)
+        self.positions = positions
     }
 
-    var total: Double {
-        var sum: Double = 0
-
-        for position in positions {
-            sum +=  position.price * Double(position.amount)
-        }
-
-        return sum
+    func encodeWithCoder(coder: NSCoder) {
+        coder.encodeObject(id, forKey: "id")
+        coder.encodeObject(value, forKey: "value")
+        coder.encodeObject(cash, forKey: "cash")
+        coder.encodeObject(positions, forKey: "positions")
     }
-
 }
