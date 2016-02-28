@@ -12,6 +12,7 @@ import Charts
 class PortfolioViewController: UITableViewController {
 
     var account: Account = Account("", value: 0, cash: 0)
+    var backgrounded = false
 
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
@@ -19,6 +20,11 @@ class PortfolioViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        let statusView = UIView()
+        statusView.frame = CGRect(x: 0, y: 0, width: UIScreen.mainScreen().bounds.size.width, height: UIApplication.sharedApplication().statusBarFrame.size.height)
+        statusView.backgroundColor = UIColor.whiteColor()
+        app.window?.addSubview(statusView)
 
         if let data = NSUserDefaults.standardUserDefaults().objectForKey("account") as? NSData {
             account = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! Account
@@ -28,20 +34,48 @@ class PortfolioViewController: UITableViewController {
         self.refreshControl?.hidden = true
         self.refreshControl!.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
 
-        refresh(self)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidEnterBackground:"), name:UIApplicationDidEnterBackgroundNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidBecomeActive:"), name:UIApplicationDidBecomeActiveNotification, object: nil)
     }
 
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
 
-        if app.credentials == nil {
-            self.performSegueWithIdentifier("link", sender: self)
+        refresh(self)
+    }
+
+    func applicationDidEnterBackground(sender: AnyObject) {
+        app.credentials = nil
+        tableView.reloadData()
+        backgrounded = true
+    }
+
+    func applicationDidBecomeActive(sender: AnyObject) {
+        if backgrounded {
+            refresh(self)
+            backgrounded = false
         }
     }
 
     func refresh(sender: AnyObject) {
-        if let credentials = app.credentials {
-             app.ofx.getAccount(credentials) { account in
+        struct Status { static var refreshing = false }
+
+        if Status.refreshing {
+            return
+        }
+
+        Status.refreshing = true
+
+        if app.credentials == nil {
+            let err: OSStatus
+            (app.credentials, err) = Credentials.loadFromKeyChain()
+            if err == errSecItemNotFound {
+                self.performSegueWithIdentifier("link", sender: self)
+            }
+        }
+
+        if let _ = app.credentials {
+                app.ofx.getAccount(app.credentials!) { account in
                 if let account = account {
                     self.account = account
 
@@ -62,14 +96,17 @@ class PortfolioViewController: UITableViewController {
                         let alertAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in }
                         alert.addAction(alertAction)
                         self.presentViewController(alert, animated: true) {}
+                        
+                        self.refreshControl?.endRefreshing()
                     }
                 }
+
+                Status.refreshing = false
             }
         }
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
+        else {
+            Status.refreshing = false
+        }
     }
 
 }
@@ -90,38 +127,37 @@ extension PortfolioViewController: ChartViewDelegate {
         chartView.legend.form = .Circle
         chartView.legend.setCustom(colors: Category.colors, labels: Category.names)
 
-        var categoryAmounts: [ChartDataEntry] = []
-        var categoryNames: [String] = []
+        var ratios: [ChartDataEntry] = []
+        var names: [String] = []
+        var colors: [UIColor] = []
 
-        for (index, category) in Category.allValues.enumerate() {
-            var total: Double = 0
-            for position in account.positions {
-                if category == position.category {
-                    total += Double(position.quantity) * position.price
-                }
-            }
-
-            if total / account.value < 0.1 {
-                categoryNames.append("")
-            }
-            else {
-                categoryNames.append(category.rawValue)
-            }
-
-            categoryAmounts.append(ChartDataEntry(value: Double(total * 100 / account.value), xIndex: index))
+        for (index, position) in account.positions.enumerate() {
+            let ratio = (position.price * Double(position.quantity)) / account.value
+            names.append( ratio > 0.1 ? position.symbol : "")
+            ratios.append(ChartDataEntry(value: ratio, xIndex: index))
+            colors.append(position.category.color)
         }
 
-        let pieChartDataSet = PieChartDataSet(yVals: categoryAmounts, label: "")
-        pieChartDataSet.colors = Category.colors
+        let pieChartDataSet = PieChartDataSet(yVals: ratios, label: "")
+        pieChartDataSet.colors = colors
         pieChartDataSet.sliceSpace = 1
         pieChartDataSet.valueTextColor = UIColor.whiteColor()
         pieChartDataSet.drawValuesEnabled = false
         pieChartDataSet.selectionShift = 5
 
-        let pieChartData = PieChartData(xVals: categoryNames, dataSet: pieChartDataSet)
+        let pieChartData = PieChartData(xVals: names, dataSet: pieChartDataSet)
         chartView.data = pieChartData
     }
 
+}
+
+extension Double {
+    var currency: String {
+        let formatter = NSNumberFormatter()
+        formatter.numberStyle = NSNumberFormatterStyle.CurrencyStyle
+        formatter.locale = NSLocale.currentLocale()
+        return formatter.stringFromNumber(self ?? 0) ?? "-"
+    }
 }
 
 extension PortfolioViewController {
@@ -137,16 +173,31 @@ extension PortfolioViewController {
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
 
-        let formatter = NSNumberFormatter()
-        formatter.numberStyle = NSNumberFormatterStyle.CurrencyStyle
-        formatter.locale = NSLocale.currentLocale()
-
         if indexPath.section == 0 {
             let cell = tableView.dequeueReusableCellWithIdentifier("PortfolioCell")! as UITableViewCell!
-            createChart(cell.contentView.viewWithTag(23) as! PieChartView)
 
-            let totalView = cell.contentView.viewWithTag(22) as! UITextView
-            totalView.text = formatter.stringFromNumber(account.value) ?? "-"
+            let valueField = cell.contentView.viewWithTag(21) as! UITextField
+            let gainField = cell.contentView.viewWithTag(22) as! UITextField
+
+            if let _ = app.credentials {
+                valueField.text = account.value.currency
+
+                gainField.text = account.gain != nil ? "\(account.gain?.currency) Today" : "-"
+                if account.gain < 0 {
+                    gainField.textColor = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
+                }
+                else {
+                    gainField.textColor = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
+                }
+            }
+            else {
+                valueField.text = "Pull to Refresh"
+
+                gainField.textColor = UIColor.blackColor()
+                gainField.text = "Sensitive data requires identification"
+            }
+
+            createChart(cell.contentView.viewWithTag(23) as! PieChartView)
 
             return cell
         }
@@ -154,12 +205,35 @@ extension PortfolioViewController {
         let cell = tableView.dequeueReusableCellWithIdentifier("PositionCell")! as UITableViewCell!
 
         let position = account.positions[indexPath.row]
-        cell.textLabel?.text = position.symbol
-        cell.detailTextLabel?.text = formatter.stringFromNumber(position.price * Double(position.quantity)) ?? "-"
 
-        let lineView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 45))
-        lineView.backgroundColor = Category.colors[Category.allValues.indexOf { $0 == position.category }!]
-        cell.contentView.addSubview(lineView)
+        let symbolField = cell.contentView.viewWithTag(1) as! UITextField
+        symbolField.text = position.symbol
+
+        let descriptionField = cell.contentView.viewWithTag(2) as! UITextField
+        descriptionField.text = position.descr ?? "No description"
+
+        let valueField = cell.contentView.viewWithTag(3) as! UITextField
+        valueField.text = (position.price * Double(position.quantity)).currency
+
+        var lineView = cell.contentView.viewWithTag(4)
+        if lineView == nil {
+            lineView = UIView()
+            lineView!.frame = CGRect(x: 0, y: 0, width: 5, height: 50)
+            lineView!.tag = 4
+            cell.contentView.addSubview(lineView!)
+        }
+        lineView!.backgroundColor = position.category.color
+
+//        var ratioView = cell.contentView.viewWithTag(5)
+//        if ratioView == nil {
+//            ratioView = UIView()
+//            ratioView!.tag = 5
+//            ratioView!.alpha = 0.05
+//            cell.contentView.addSubview(ratioView!)
+//        }
+//        let ratioWidth = Double(cell.contentView.frame.width) * position.price * Double(position.quantity) / account.value
+//        ratioView!.frame = CGRect(x: 0, y: 0, width: ratioWidth, height:50)
+//        ratioView!.backgroundColor = position.category.color
 
         return cell
     }
@@ -172,27 +246,11 @@ extension PortfolioViewController {
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
         if indexPath.section == 0 {
-            return 278
+            return 300
         }
 
-        return 45
+        return 50
     }
 
 }
 
-extension UINavigationController {
-
-    public func presentTransparentNavigationBar() {
-        navigationBar.setBackgroundImage(UIImage(), forBarMetrics:UIBarMetrics.Default)
-        navigationBar.translucent = true
-        navigationBar.shadowImage = UIImage()
-        setNavigationBarHidden(false, animated:true)
-    }
-
-    public func hideTransparentNavigationBar() {
-        setNavigationBarHidden(true, animated:false)
-        navigationBar.setBackgroundImage(UINavigationBar.appearance().backgroundImageForBarMetrics(UIBarMetrics.Default), forBarMetrics:UIBarMetrics.Default)
-        navigationBar.translucent = UINavigationBar.appearance().translucent
-        navigationBar.shadowImage = UINavigationBar.appearance().shadowImage
-    }
-}

@@ -12,13 +12,17 @@ enum Category: String {
     case Equity = "Equities", Fund = "Funds", Bond = "Bonds", Option = "Options", Cash = "Cash"
     static let allValues = [Equity, Fund, Bond, Option, Cash]
     static let names = [Equity.rawValue, Fund.rawValue, Bond.rawValue, Option.rawValue, Cash.rawValue]
-    static let colors = [
-        UIColor(red: CGFloat(0.0/255), green: CGFloat(178.0/255), blue: CGFloat(220.0/255), alpha: 0.8),
-        UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 0.8),
-        UIColor(red: CGFloat(150.0/255), green: CGFloat(140.0/255), blue: CGFloat(138.0/255), alpha: 0.8),
-        UIColor(red: CGFloat(255.0/255), green: CGFloat(148.0/255), blue: CGFloat(0.0/255), alpha: 0.8),
-        UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 0.8),
-    ]
+    static let colors = [Equity.color, Fund.color, Bond.color, Option.color, Cash.color]
+
+    var color: UIColor {
+        switch (self) {
+        case .Equity: return UIColor(red: CGFloat(0.0/255), green: CGFloat(178.0/255), blue: CGFloat(220.0/255), alpha: 1)
+        case .Fund: return UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
+        case .Bond: return UIColor(red: CGFloat(150.0/255), green: CGFloat(140.0/255), blue: CGFloat(138.0/255), alpha: 1)
+        case .Option: return UIColor(red: CGFloat(255.0/255), green: CGFloat(148.0/255), blue: CGFloat(0.0/255), alpha: 1)
+        default: return UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
+        }
+    }
 }
 
 class Position: NSObject, NSCoding {

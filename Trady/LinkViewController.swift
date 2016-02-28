@@ -34,6 +34,8 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
     func setWaitState(isWaiting: Bool = true) {
         username.enabled = !isWaiting
         password.enabled = !isWaiting
+        username.userInteractionEnabled = !isWaiting
+        password.userInteractionEnabled = !isWaiting
         UIApplication.sharedApplication().networkActivityIndicatorVisible = isWaiting
     }
 
@@ -61,6 +63,10 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
                 }
             }
         }
+    }
+
+    func textFieldShouldBeginEditing(textField: UITextField) -> Bool {
+        return true
     }
 
     func textFieldShouldReturn(textField: UITextField) -> Bool {

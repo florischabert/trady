@@ -33,7 +33,7 @@ class Credentials: NSObject, NSCoding {
         coder.encodeObject(account, forKey: "account")
     }
 
-    func saveToKeyChain() {
+    func saveToKeyChain(deleteOnly: Bool = false) {
         let accessControlError:UnsafeMutablePointer<Unmanaged<CFError>?> = nil
         let accessControlRef = SecAccessControlCreateWithFlags(
             kCFAllocatorDefault,
@@ -50,10 +50,13 @@ class Credentials: NSObject, NSCoding {
         ]
 
         SecItemDelete(query)
-        SecItemAdd(query, nil)
+        if !deleteOnly {
+            SecItemAdd(query, nil)
+        }
     }
 
-    static func loadFromKeyChain() -> Credentials? {
+    static func loadFromKeyChain() -> (Credentials?, error: OSStatus) {
+        var credentials: Credentials? = nil
 
         let query: [NSString : AnyObject] = [
             kSecClass : kSecClassGenericPassword,
@@ -67,13 +70,12 @@ class Credentials: NSObject, NSCoding {
         let err = SecItemCopyMatching(query, &result)
 
         if err == errSecSuccess {
-
             if let data = result as? NSData {
-                return NSKeyedUnarchiver.unarchiveObjectWithData(data) as? Credentials
+                credentials = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? Credentials
             }
         }
-        
-        return nil
+
+        return (credentials, err)
     }
 
 }
