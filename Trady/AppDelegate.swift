@@ -15,6 +15,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     var credentials: Credentials?
     let ofx = OFXClient(url: NSURL(string: "https://ofx.etrade.com/cgi-ofx/etradeofx")!)
+    let status = CWStatusBarNotification()
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         return true

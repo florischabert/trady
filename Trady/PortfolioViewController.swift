@@ -13,6 +13,7 @@ class PortfolioViewController: UITableViewController {
 
     var account: Account = Account("", value: 0, cash: 0)
     var backgrounded = false
+    var blurView: UIView?
 
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
@@ -26,16 +27,22 @@ class PortfolioViewController: UITableViewController {
         statusView.backgroundColor = UIColor.whiteColor()
         app.window?.addSubview(statusView)
 
-        if let data = NSUserDefaults.standardUserDefaults().objectForKey("account") as? NSData {
-            account = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! Account
-        }
-
         self.refreshControl = UIRefreshControl()
         self.refreshControl?.hidden = true
         self.refreshControl!.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
 
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidEnterBackground:"), name:UIApplicationDidEnterBackgroundNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidBecomeActive:"), name:UIApplicationDidBecomeActiveNotification, object: nil)
+
+        NSUserDefaults.standardUserDefaults().removeObjectForKey("account")
+        if let data = NSUserDefaults.standardUserDefaults().objectForKey("account") as? NSData {
+            account = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! Account
+        }
+        else {
+            blurView = UIVisualEffectView(effect: UIBlurEffect(style: .ExtraLight))
+            blurView!.frame = app.window!.frame
+            app.window!.addSubview(blurView!)
+        }
     }
 
     override func viewDidAppear(animated: Bool) {
@@ -86,6 +93,7 @@ class PortfolioViewController: UITableViewController {
                     defaults.synchronize()
 
                     dispatch_async(dispatch_get_main_queue()) {
+                        self.blurView?.removeFromSuperview()
                         self.tableView.reloadData()
                         self.refreshControl?.endRefreshing()
                     }
@@ -133,9 +141,15 @@ extension PortfolioViewController: ChartViewDelegate {
 
         for (index, position) in account.positions.enumerate() {
             let ratio = (position.price * Double(position.quantity)) / account.value
-            names.append( ratio > 0.1 ? position.symbol : "")
+            if let _ = app.credentials {
+                names.append( ratio > 0.1 ? position.symbol : "")
+                colors.append(position.category.color)
+            }
+            else {
+                names.append("")
+                colors.append(Category.Equity.color)
+            }
             ratios.append(ChartDataEntry(value: ratio, xIndex: index))
-            colors.append(position.category.color)
         }
 
         let pieChartDataSet = PieChartDataSet(yVals: ratios, label: "")
@@ -213,7 +227,12 @@ extension PortfolioViewController {
         descriptionField.text = position.descr ?? "No description"
 
         let valueField = cell.contentView.viewWithTag(3) as! UITextField
-        valueField.text = (position.price * Double(position.quantity)).currency
+        if let _ = app.credentials {
+            valueField.text = (position.price * Double(position.quantity)).currency
+        }
+        else {
+            valueField.text = ""
+        }
 
         var lineView = cell.contentView.viewWithTag(4)
         if lineView == nil {
