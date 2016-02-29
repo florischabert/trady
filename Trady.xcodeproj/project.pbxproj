@@ -15,6 +15,7 @@
 		9D582C7B1C7547CB004B0754 /* Charts.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9D582C791C7547CB004B0754 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9D5A84AB1C7C1F7B002E01A3 /* PositionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5A84AA1C7C1F7B002E01A3 /* PositionViewController.swift */; };
 		9D5A84AD1C7CBFB5002E01A3 /* LinkViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5A84AC1C7CBFB5002E01A3 /* LinkViewController.swift */; };
+		9D6686431C84B6D0000A61E5 /* YahooClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D6686421C84B6D0000A61E5 /* YahooClient.swift */; };
 		9D67BFFD1C7E9DF7005D5930 /* Credentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D67BFFC1C7E9DF7005D5930 /* Credentials.swift */; };
 		9D9BC9841C644196005F11FC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9BC9831C644196005F11FC /* AppDelegate.swift */; };
 		9D9BC9861C644196005F11FC /* PortfolioViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D9BC9851C644196005F11FC /* PortfolioViewController.swift */; };
@@ -48,6 +49,7 @@
 		9D5A84A71C7A55CA002E01A3 /* Bridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Bridge.h; sourceTree = "<group>"; };
 		9D5A84AA1C7C1F7B002E01A3 /* PositionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PositionViewController.swift; sourceTree = "<group>"; };
 		9D5A84AC1C7CBFB5002E01A3 /* LinkViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinkViewController.swift; sourceTree = "<group>"; };
+		9D6686421C84B6D0000A61E5 /* YahooClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = YahooClient.swift; sourceTree = "<group>"; };
 		9D67BFFC1C7E9DF7005D5930 /* Credentials.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Credentials.swift; sourceTree = "<group>"; };
 		9D9BC9801C644196005F11FC /* Trady.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Trady.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D9BC9831C644196005F11FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -93,6 +95,7 @@
 			children = (
 				9D3EFFCB1C65210A00849DB7 /* ETradeClient.swift */,
 				9D119E961C7E9A5E005DED0F /* OFXClient.swift */,
+				9D6686421C84B6D0000A61E5 /* YahooClient.swift */,
 			);
 			name = Clients;
 			sourceTree = "<group>";
@@ -215,6 +218,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9D2EACEE1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift in Sources */,
+				9D6686431C84B6D0000A61E5 /* YahooClient.swift in Sources */,
 				9D2EACEC1C813AD6002259B6 /* CWStatusBarNotification.swift in Sources */,
 				9D119E971C7E9A5E005DED0F /* OFXClient.swift in Sources */,
 				9D67BFFD1C7E9DF7005D5930 /* Credentials.swift in Sources */,

@@ -130,7 +130,6 @@ class OFXClient {
             "NEWFILEUID:\(NSUUID().UUIDString)\n" +
             "\n"
 
-
         let logon =
             Tag("SIGNONMSGSRQV1", [
                 Tag("SONRQ", [
@@ -268,8 +267,11 @@ class OFXClient {
                                 default: Category.Cash
                             }
 
+                            var symbol = (position.valueForKeyPath("INVPOS.MEMO") as? String)
+                            symbol = symbol?.stringByReplacingOccurrencesOfString(".", withString: "-")
+
                             let position = Position(
-                                symbol: position.valueForKeyPath("INVPOS.MEMO") as? String ?? "UKW",
+                                symbol: symbol ?? "UKW",
                                 category: category,
                                 price: Double(position.valueForKeyPath("INVPOS.UNITPRICE") as! String) ?? 0.0,
                                 quantity: Double(position.valueForKeyPath("INVPOS.UNITS") as! String) ?? 0
@@ -279,7 +281,7 @@ class OFXClient {
                     }
                 }
 
-//                account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
+                account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
 
                 completionHandler(account: account)
             }

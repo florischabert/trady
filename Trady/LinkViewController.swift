@@ -55,11 +55,7 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
             else {
                 dispatch_async(dispatch_get_main_queue()) {
                     self.setWaitState(false)
-
-                    let alert = UIAlertController(title: "Login failed", message: "Please verify your username and password and retry.", preferredStyle: UIAlertControllerStyle.Alert)
-                    let alertAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in }
-                    alert.addAction(alertAction)
-                    self.presentViewController(alert, animated: true) {}
+                    self.app.status.displayNotificationWithMessage("Login failed. Try again.", forDuration: 5)
                 }
             }
         }

@@ -27,18 +27,28 @@ enum Category: String {
 
 class Position: NSObject, NSCoding {
     var symbol: String
-    var descr: String?
+    var descr: String = "-"
     var category: Category
 
     var price: Double
-
     var quantity: Double
 
-    init(symbol: String, category: Category, price: Double, quantity: Double) {
+    var change: Double?
+
+    init(symbol: String, category: Category, price: Double, quantity: Double, descr: String? = nil) {
         self.symbol = symbol
         self.category = category
         self.price = price
         self.quantity = quantity
+
+        if let descr = descr {
+            self.descr = descr
+        }
+
+        if category == .Cash {
+            self.descr = "Available Cash"
+        }
+
     }
 
     required convenience init(coder decoder: NSCoder) {
@@ -46,10 +56,9 @@ class Position: NSObject, NSCoding {
         let category = Category.allValues[decoder.decodeObjectForKey("category") as! Int]
         let price = decoder.decodeObjectForKey("price") as! Double
         let quantity = decoder.decodeObjectForKey("quantity") as! Double
-        let descr = decoder.decodeObjectForKey("descr") as? String
+        let descr = decoder.decodeObjectForKey("descr") as! String
 
-        self.init(symbol: symbol, category: category, price: price, quantity: quantity)
-        self.descr = descr
+        self.init(symbol: symbol, category: category, price: price, quantity: quantity, descr: descr)
     }
 
     func encodeWithCoder(coder: NSCoder) {

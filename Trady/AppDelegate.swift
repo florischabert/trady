@@ -18,6 +18,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     let status = CWStatusBarNotification()
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+
+        status.notificationLabelBackgroundColor = UIColor.whiteColor()
+        status.notificationLabelTextColor = UIColor.blackColor()
+
         return true
     }
 

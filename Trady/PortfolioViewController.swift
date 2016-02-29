@@ -34,7 +34,6 @@ class PortfolioViewController: UITableViewController {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidEnterBackground:"), name:UIApplicationDidEnterBackgroundNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidBecomeActive:"), name:UIApplicationDidBecomeActiveNotification, object: nil)
 
-        NSUserDefaults.standardUserDefaults().removeObjectForKey("account")
         if let data = NSUserDefaults.standardUserDefaults().objectForKey("account") as? NSData {
             account = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! Account
         }
@@ -73,47 +72,57 @@ class PortfolioViewController: UITableViewController {
 
         Status.refreshing = true
 
+        dispatch_async(dispatch_get_main_queue()) {
+            self.refreshControl?.endRefreshing()
+            self.app.status.displayNotificationWithMessage("Syncing account...") {}
+        }
+
+        var credentials: Credentials? = nil
+
         if app.credentials == nil {
             let err: OSStatus
-            (app.credentials, err) = Credentials.loadFromKeyChain()
+            (credentials, err) = Credentials.loadFromKeyChain()
             if err == errSecItemNotFound {
                 self.performSegueWithIdentifier("link", sender: self)
             }
         }
 
-        if let _ = app.credentials {
-                app.ofx.getAccount(app.credentials!) { account in
+        if let credentials = credentials {
+            app.ofx.getAccount(credentials) { account in
                 if let account = account {
                     self.account = account
 
-                    let defaults = NSUserDefaults.standardUserDefaults()
-                    let data = NSKeyedArchiver.archivedDataWithRootObject(account) as NSData
-                    defaults.removeObjectForKey("account")
-                    defaults.setObject(data, forKey: "account")
-                    defaults.synchronize()
-
                     dispatch_async(dispatch_get_main_queue()) {
                         self.blurView?.removeFromSuperview()
-                        self.tableView.reloadData()
-                        self.refreshControl?.endRefreshing()
+                    }
+
+                    YahooClient.updateAccount(self.account) {
+                        dispatch_async(dispatch_get_main_queue()) {
+                            self.tableView.reloadData()
+                            self.app.status.dismissNotification()
+                        }
+                        
+                        let defaults = NSUserDefaults.standardUserDefaults()
+                        let data = NSKeyedArchiver.archivedDataWithRootObject(account) as NSData
+                        defaults.removeObjectForKey("account")
+                        defaults.setObject(data, forKey: "account")
+                        defaults.synchronize()
                     }
                 }
                 else {
                     dispatch_async(dispatch_get_main_queue()) {
-                        let alert = UIAlertController(title: "Update", message: "Your porfolio could not be updated. Please try again later.", preferredStyle: UIAlertControllerStyle.Alert)
-                        let alertAction = UIAlertAction(title: "OK", style: UIAlertActionStyle.Default) { (UIAlertAction) -> Void in }
-                        alert.addAction(alertAction)
-                        self.presentViewController(alert, animated: true) {}
-                        
-                        self.refreshControl?.endRefreshing()
+                        self.app.status.dismissNotificationWithCompletion() {
+                            self.app.status.displayNotificationWithMessage("Try again later", forDuration: 5)
+                        }
                     }
                 }
-
+                self.app.credentials = credentials
                 Status.refreshing = false
             }
         }
         else {
             Status.refreshing = false
+            app.status.dismissNotification()
         }
     }
 
@@ -128,8 +137,8 @@ extension PortfolioViewController: ChartViewDelegate {
         chartView.usePercentValuesEnabled = true
         chartView.drawHoleEnabled = true
         chartView.holeTransparent = true
-        chartView.transparentCircleRadiusPercent = 0.50
-        chartView.holeRadiusPercent = 0.49
+        chartView.transparentCircleRadiusPercent = 0.47
+        chartView.holeRadiusPercent = 0.45
         chartView.rotationEnabled = false
         chartView.legend.position = .BelowChartCenter
         chartView.legend.form = .Circle
@@ -192,23 +201,36 @@ extension PortfolioViewController {
 
             let valueField = cell.contentView.viewWithTag(21) as! UITextField
             let gainField = cell.contentView.viewWithTag(22) as! UITextField
+            let legendValueField = cell.contentView.viewWithTag(70) as! UITextField
+            let legendGainField = cell.contentView.viewWithTag(71) as! UITextField
 
             if let _ = app.credentials {
                 valueField.text = account.value.currency
 
-                gainField.text = account.gain != nil ? "\(account.gain?.currency) Today" : "-"
-                if account.gain < 0 {
+                var text = account.change?.currency ?? "-"
+                if let change = account.change {
+                    text += " (\(String(format: "%.2f", 100 * change / (account.value - change)))%)"
+                }
+                gainField.text = text
+
+                if account.change < 0 {
                     gainField.textColor = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
                 }
                 else {
                     gainField.textColor = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
                 }
+
+                legendValueField.hidden = false
+                legendGainField.hidden = false
             }
             else {
                 valueField.text = "Pull to Refresh"
 
                 gainField.textColor = UIColor.blackColor()
                 gainField.text = "Sensitive data requires identification"
+
+                legendValueField.hidden = true
+                legendGainField.hidden = true
             }
 
             createChart(cell.contentView.viewWithTag(23) as! PieChartView)
@@ -224,9 +246,35 @@ extension PortfolioViewController {
         symbolField.text = position.symbol
 
         let descriptionField = cell.contentView.viewWithTag(2) as! UITextField
-        descriptionField.text = position.descr ?? "No description"
+        descriptionField.text = position.descr
 
-        let valueField = cell.contentView.viewWithTag(3) as! UITextField
+        let changeField = cell.contentView.viewWithTag(3) as! UITextField
+
+        if let _ = app.credentials {
+            if let change = position.change {
+                changeField.text = "\(position.price.currency) (\(String(format: "%.2f", 100 * change / (position.price - change)))%)"
+            }
+            if position.category == .Cash {
+                changeField.text = "-"
+            }
+        }
+        else {
+            changeField.text = ""
+        }
+
+        if let change = position.change where change != 0  {
+            if change < 0 {
+                changeField.textColor = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
+            }
+            else {
+                changeField.textColor = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
+            }
+        }
+        else {
+            changeField.textColor = UIColor.blackColor()
+        }
+
+        let valueField = cell.contentView.viewWithTag(4) as! UITextField
         if let _ = app.credentials {
             valueField.text = (position.price * Double(position.quantity)).currency
         }
@@ -234,11 +282,11 @@ extension PortfolioViewController {
             valueField.text = ""
         }
 
-        var lineView = cell.contentView.viewWithTag(4)
+        var lineView = cell.contentView.viewWithTag(42)
         if lineView == nil {
             lineView = UIView()
             lineView!.frame = CGRect(x: 0, y: 0, width: 5, height: 50)
-            lineView!.tag = 4
+            lineView!.tag = 42
             cell.contentView.addSubview(lineView!)
         }
         lineView!.backgroundColor = position.category.color

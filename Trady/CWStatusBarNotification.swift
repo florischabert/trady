@@ -32,7 +32,7 @@ import UIKit
 public class CWStatusBarNotification : NSObject {
     // MARK: - properties
 
-    private let fontSize : CGFloat = 10.0
+    private let fontSize : CGFloat = 11.0
 
     private var tapGestureRecognizer : UITapGestureRecognizer!
     private var dismissHandle : CWDelayedClosureHandle?
@@ -69,7 +69,7 @@ public class CWStatusBarNotification : NSObject {
             self.notificationLabelBackgroundColor = UIColor.blackColor()
         }
         self.notificationLabelTextColor = UIColor.whiteColor()
-        self.notificationLabelFont = UIFont.systemFontOfSize(self.fontSize)
+        self.notificationLabelFont = UIFont.boldSystemFontOfSize(self.fontSize)
         self.notificationLabelHeight = 0.0
         self.customView = nil
         self.multiline = false

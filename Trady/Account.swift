@@ -12,7 +12,7 @@ class Account: NSObject, NSCoding {
     let id: String
     var value: Double
     var cash: Double
-    var gain: Double?
+    var change: Double?
 
     var positions: [Position] = []
 
@@ -27,11 +27,9 @@ class Account: NSObject, NSCoding {
         let value = decoder.decodeObjectForKey("value") as! Double
         let cash = decoder.decodeObjectForKey("cash") as! Double
         let positions = decoder.decodeObjectForKey("positions") as! [Position]
-        let gain = decoder.decodeObjectForKey("gain") as! Double?
 
         self.init(id, value: value, cash: cash)
         self.positions = positions
-        self.gain = gain
     }
 
     func encodeWithCoder(coder: NSCoder) {
@@ -39,6 +37,5 @@ class Account: NSObject, NSCoding {
         coder.encodeObject(value, forKey: "value")
         coder.encodeObject(cash, forKey: "cash")
         coder.encodeObject(positions, forKey: "positions")
-        coder.encodeObject(gain, forKey: "gain")
     }
 }
