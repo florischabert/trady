@@ -150,6 +150,7 @@ extension PortfolioViewController {
 
         if indexPath.section == 0 {
             let cell = tableView.dequeueReusableCellWithIdentifier("SummaryCell")! as! SummaryCell
+            cell.portfolioController = self
             cell.update(account)
             return cell
         }
@@ -178,7 +179,7 @@ extension PortfolioViewController {
         return 55
     }
 
-    override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 
         tableView.beginUpdates()
 
@@ -186,10 +187,13 @@ extension PortfolioViewController {
             expandedIndexPath = nil
         }
         else {
-//            expandedIndexPath = indexPath
+            expandedIndexPath = indexPath
         }
 
+        tableView.reloadRowsAtIndexPaths([NSIndexPath(forRow: 0, inSection: 0)], withRowAnimation: .Fade)
+
         tableView.endUpdates()
+
     }
 
 }

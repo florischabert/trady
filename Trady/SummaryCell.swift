@@ -18,6 +18,8 @@ class SummaryCell: UITableViewCell, ChartViewDelegate {
     @IBOutlet weak var chart: PieChartView!
     @IBOutlet weak var chartPercentage: UILabel!
 
+    weak var portfolioController: PortfolioViewController?
+
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
@@ -93,16 +95,33 @@ class SummaryCell: UITableViewCell, ChartViewDelegate {
         pieChartDataSet.drawValuesEnabled = false
         pieChartDataSet.selectionShift = 6
 
+        dispatch_async(dispatch_get_main_queue()) {
+            if let expandedIndexPath = self.portfolioController?.expandedIndexPath {
+                self.chart.highlightValue(xIndex: expandedIndexPath.row, dataSetIndex: 0, callDelegate: false)
+            }
+            else {
+                self.chart.highlightValue(highlight: nil, callDelegate: false)
+            }
+        }
+
         let pieChartData = PieChartData(xVals: names, dataSet: pieChartDataSet)
         chart.data = pieChartData
     }
 
     func chartValueSelected(chartView: Charts.ChartViewBase, entry: Charts.ChartDataEntry, dataSetIndex: Int, highlight: Charts.ChartHighlight) {
         chartPercentage.text = "\(String(format: "%.1f", entry.value*100))%"
+
+        portfolioController?.tableView.beginUpdates()
+        portfolioController?.expandedIndexPath = NSIndexPath(forRow: entry.xIndex, inSection: 1)
+        portfolioController?.tableView.endUpdates()
     }
 
     func chartValueNothingSelected(chartView: Charts.ChartViewBase) {
         chartPercentage.text = ""
+
+        portfolioController?.tableView.beginUpdates()
+        portfolioController?.expandedIndexPath = nil
+        portfolioController?.tableView.endUpdates()
     }
 
 }
