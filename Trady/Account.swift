@@ -38,4 +38,13 @@ class Account: NSObject, NSCoding {
         coder.encodeObject(cash, forKey: "cash")
         coder.encodeObject(positions, forKey: "positions")
     }
+
+    func save() {
+        let defaults = NSUserDefaults.standardUserDefaults()
+        let data = NSKeyedArchiver.archivedDataWithRootObject(self) as NSData
+        defaults.removeObjectForKey("account")
+        defaults.setObject(data, forKey: "account")
+        defaults.synchronize()
+    }
+
 }

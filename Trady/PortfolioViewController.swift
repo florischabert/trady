@@ -15,6 +15,8 @@ class PortfolioViewController: UITableViewController {
     var backgrounded = false
     var blurView: UIView?
 
+    var expandedIndexPath: NSIndexPath?
+
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
@@ -22,10 +24,7 @@ class PortfolioViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let statusView = UIView()
-        statusView.frame = CGRect(x: 0, y: 0, width: UIScreen.mainScreen().bounds.size.width, height: UIApplication.sharedApplication().statusBarFrame.size.height)
-        statusView.backgroundColor = UIColor.whiteColor()
-        app.window?.addSubview(statusView)
+        self.tableView.contentInset = UIEdgeInsetsMake(20, 0, 0, 0)
 
         self.refreshControl = UIRefreshControl()
         self.refreshControl?.hidden = true
@@ -66,18 +65,17 @@ class PortfolioViewController: UITableViewController {
     func refresh(sender: AnyObject) {
         struct Status { static var refreshing = false }
 
+        self.refreshControl?.endRefreshing()
+
         if Status.refreshing {
             return
         }
 
         Status.refreshing = true
 
-        dispatch_async(dispatch_get_main_queue()) {
-            self.refreshControl?.endRefreshing()
-            self.app.status.displayNotificationWithMessage("Syncing account...") {}
-        }
+        self.app.status.displayNotificationWithMessage("Syncing account...") {}
 
-        var credentials: Credentials? = nil
+        var credentials = app.credentials
 
         if app.credentials == nil {
             let err: OSStatus
@@ -87,89 +85,43 @@ class PortfolioViewController: UITableViewController {
             }
         }
 
+        let completion = {
+            Status.refreshing = false
+            dispatch_async(dispatch_get_main_queue()) {
+                self.app.status.dismissNotification()
+                self.tableView.reloadData()
+            }
+        }
+
         if let credentials = credentials {
             app.ofx.getAccount(credentials) { account in
                 if let account = account {
                     self.account = account
 
-                    dispatch_async(dispatch_get_main_queue()) {
-                        self.blurView?.removeFromSuperview()
-                    }
+                    self.blurView?.removeFromSuperview()
 
                     YahooClient.updateAccount(self.account) {
-                        dispatch_async(dispatch_get_main_queue()) {
-                            self.tableView.reloadData()
-                            self.app.status.dismissNotification()
-                        }
-                        
-                        let defaults = NSUserDefaults.standardUserDefaults()
-                        let data = NSKeyedArchiver.archivedDataWithRootObject(account) as NSData
-                        defaults.removeObjectForKey("account")
-                        defaults.setObject(data, forKey: "account")
-                        defaults.synchronize()
+                        completion()
+                        account.save()
                     }
                 }
                 else {
-                    dispatch_async(dispatch_get_main_queue()) {
-                        self.app.status.dismissNotificationWithCompletion() {
-                            self.app.status.displayNotificationWithMessage("Try again later", forDuration: 5)
-                        }
-                    }
+                    completion()
+                    self.app.status.displayNotificationWithMessage("Try again later", forDuration: 5)
                 }
+
                 self.app.credentials = credentials
-                Status.refreshing = false
             }
         }
         else {
-            Status.refreshing = false
-            app.status.dismissNotification()
+            completion()
         }
     }
 
-}
-
-extension PortfolioViewController: ChartViewDelegate {
-
-    func createChart(chartView: PieChartView) {
-        chartView.delegate = self
-        chartView.legend.enabled = true
-        chartView.descriptionText = ""
-        chartView.usePercentValuesEnabled = true
-        chartView.drawHoleEnabled = true
-        chartView.holeTransparent = true
-        chartView.transparentCircleRadiusPercent = 0.47
-        chartView.holeRadiusPercent = 0.45
-        chartView.rotationEnabled = false
-        chartView.legend.position = .BelowChartCenter
-        chartView.legend.form = .Circle
-        chartView.legend.setCustom(colors: Category.colors, labels: Category.names)
-
-        var ratios: [ChartDataEntry] = []
-        var names: [String] = []
-        var colors: [UIColor] = []
-
-        for (index, position) in account.positions.enumerate() {
-            let ratio = (position.price * Double(position.quantity)) / account.value
-            if let _ = app.credentials {
-                names.append( ratio > 0.1 ? position.symbol : "")
-                colors.append(position.category.color)
-            }
-            else {
-                names.append("")
-                colors.append(Category.Equity.color)
-            }
-            ratios.append(ChartDataEntry(value: ratio, xIndex: index))
-        }
-
-        let pieChartDataSet = PieChartDataSet(yVals: ratios, label: "")
-        pieChartDataSet.colors = colors
-        pieChartDataSet.sliceSpace = 1
-        pieChartDataSet.valueTextColor = UIColor.whiteColor()
-        pieChartDataSet.drawValuesEnabled = false
-        pieChartDataSet.selectionShift = 5
-
-        let pieChartData = PieChartData(xVals: names, dataSet: pieChartDataSet)
-        chartView.data = pieChartData
+    override func scrollViewDidScroll(scrollView: UIScrollView) {
+        let offset = scrollView.contentOffset.y + 20
+        let statusBarWindow = UIApplication.sharedApplication().valueForKey("statusBarWindow") as! UIWindow
+        statusBarWindow.frame = CGRect(x: 0, y: offset > 0 ? -offset : 0, width: statusBarWindow.frame.size.width, height: statusBarWindow.frame.size.height)
     }
 
 }
@@ -197,111 +149,14 @@ extension PortfolioViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
 
         if indexPath.section == 0 {
-            let cell = tableView.dequeueReusableCellWithIdentifier("PortfolioCell")! as UITableViewCell!
-
-            let valueField = cell.contentView.viewWithTag(21) as! UITextField
-            let gainField = cell.contentView.viewWithTag(22) as! UITextField
-            let legendValueField = cell.contentView.viewWithTag(70) as! UITextField
-            let legendGainField = cell.contentView.viewWithTag(71) as! UITextField
-
-            if let _ = app.credentials {
-                valueField.text = account.value.currency
-
-                var text = account.change?.currency ?? "-"
-                if let change = account.change {
-                    text += " (\(String(format: "%.2f", 100 * change / (account.value - change)))%)"
-                }
-                gainField.text = text
-
-                if account.change < 0 {
-                    gainField.textColor = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
-                }
-                else {
-                    gainField.textColor = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
-                }
-
-                legendValueField.hidden = false
-                legendGainField.hidden = false
-            }
-            else {
-                valueField.text = "Pull to Refresh"
-
-                gainField.textColor = UIColor.blackColor()
-                gainField.text = "Sensitive data requires identification"
-
-                legendValueField.hidden = true
-                legendGainField.hidden = true
-            }
-
-            createChart(cell.contentView.viewWithTag(23) as! PieChartView)
-
+            let cell = tableView.dequeueReusableCellWithIdentifier("SummaryCell")! as! SummaryCell
+            cell.update(account)
             return cell
         }
 
-        let cell = tableView.dequeueReusableCellWithIdentifier("PositionCell")! as UITableViewCell!
-
+        let cell = tableView.dequeueReusableCellWithIdentifier("PositionCell")! as! PositionCell
         let position = account.positions[indexPath.row]
-
-        let symbolField = cell.contentView.viewWithTag(1) as! UITextField
-        symbolField.text = position.symbol
-
-        let descriptionField = cell.contentView.viewWithTag(2) as! UITextField
-        descriptionField.text = position.descr
-
-        let changeField = cell.contentView.viewWithTag(3) as! UITextField
-
-        if let _ = app.credentials {
-            if let change = position.change {
-                changeField.text = "\(position.price.currency) (\(String(format: "%.2f", 100 * change / (position.price - change)))%)"
-            }
-            if position.category == .Cash {
-                changeField.text = "-"
-            }
-        }
-        else {
-            changeField.text = ""
-        }
-
-        if let change = position.change where change != 0  {
-            if change < 0 {
-                changeField.textColor = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
-            }
-            else {
-                changeField.textColor = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
-            }
-        }
-        else {
-            changeField.textColor = UIColor.blackColor()
-        }
-
-        let valueField = cell.contentView.viewWithTag(4) as! UITextField
-        if let _ = app.credentials {
-            valueField.text = (position.price * Double(position.quantity)).currency
-        }
-        else {
-            valueField.text = ""
-        }
-
-        var lineView = cell.contentView.viewWithTag(42)
-        if lineView == nil {
-            lineView = UIView()
-            lineView!.frame = CGRect(x: 0, y: 0, width: 5, height: 50)
-            lineView!.tag = 42
-            cell.contentView.addSubview(lineView!)
-        }
-        lineView!.backgroundColor = position.category.color
-
-//        var ratioView = cell.contentView.viewWithTag(5)
-//        if ratioView == nil {
-//            ratioView = UIView()
-//            ratioView!.tag = 5
-//            ratioView!.alpha = 0.05
-//            cell.contentView.addSubview(ratioView!)
-//        }
-//        let ratioWidth = Double(cell.contentView.frame.width) * position.price * Double(position.quantity) / account.value
-//        ratioView!.frame = CGRect(x: 0, y: 0, width: ratioWidth, height:50)
-//        ratioView!.backgroundColor = position.category.color
-
+        cell.update(account, position: position)
         return cell
     }
 
@@ -313,11 +168,28 @@ extension PortfolioViewController {
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
         if indexPath.section == 0 {
-            return 300
+            return 305
         }
 
-        return 50
+        if indexPath == expandedIndexPath {
+            return 200
+        }
+
+        return 55
+    }
+
+    override func tableView(tableView: UITableView, didDeselectRowAtIndexPath indexPath: NSIndexPath) {
+
+        tableView.beginUpdates()
+
+        if indexPath.section == 0 || indexPath == expandedIndexPath {
+            expandedIndexPath = nil
+        }
+        else {
+//            expandedIndexPath = indexPath
+        }
+
+        tableView.endUpdates()
     }
 
 }
-
