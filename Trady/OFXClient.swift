@@ -282,8 +282,7 @@ class OFXClient {
 
                 account.positions.append(Position(symbol: "CASH", category: Category.Cash, price: account.cash, quantity: 1))
 
-
-//                account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
+                account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
 
                 completionHandler(account: account)
             }

@@ -176,6 +176,7 @@ extension PortfolioViewController {
         }
 
         let cell = tableView.dequeueReusableCellWithIdentifier("PositionCell")! as! PositionCell
+        cell.portfolioController = self
         let position = account.positions[indexPath.row]
         cell.update(account, position: position)
         return cell
@@ -208,9 +209,11 @@ extension PortfolioViewController {
         tableView.beginUpdates()
 
         expandedIndexPath = indexPath == expandedIndexPath ? nil : indexPath
-        tableView.reloadRowsAtIndexPaths([NSIndexPath(forRow: 0, inSection: 0), indexPath], withRowAnimation: .Fade)
+        tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
 
         tableView.endUpdates()
+
+        tableView.reloadRowsAtIndexPaths([NSIndexPath(forRow: 0, inSection: 0)], withRowAnimation: .None)
     }
 
 }

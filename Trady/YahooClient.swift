@@ -70,7 +70,7 @@ class YahooClient {
             account.change = change
             account.value = value
 
-//            account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
+            account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
 
             completion()
         }
