@@ -6,6 +6,7 @@
 //  Copyright © 2016 Floris Chabert. All rights reserved.
 //
 
+import Charts
 import UIKit
 
 class PositionCell: UITableViewCell {
@@ -14,6 +15,7 @@ class PositionCell: UITableViewCell {
     @IBOutlet weak var descr: UILabel!
     @IBOutlet weak var change: UILabel!
     @IBOutlet weak var amount: UILabel!
+    @IBOutlet weak var chart: UIView!
 
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
@@ -24,37 +26,45 @@ class PositionCell: UITableViewCell {
         symbol.text = position.symbol
         descr.text = position.descr
 
-        if let _ = app.credentials {
-            if let changeValue = position.change {
-                change.text = "\(position.price.currency) (\(String(format: "%.2f", 100 * changeValue / (position.price - changeValue)))%)"
+        if let changeValue = position.change {
+            change.text = "\(position.price.currency) \(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (position.price - changeValue)))%"
+
+            var colorChange = UIColor.blackColor()
+            if account.change < 0 {
+                colorChange = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
             }
-            if position.category == .Cash {
-                change.text = "-"
+            else {
+                colorChange = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
             }
 
-            amount.text = (position.price * Double(position.quantity)).currency
+            let attributedText = NSMutableAttributedString(attributedString: change.attributedText!)
+            let start = change.text!.startIndex.distanceTo(change.text!.rangeOfString(" ")!.endIndex)
+            let length = change.text!.rangeOfString(" ")!.endIndex.distanceTo(change.text!.endIndex)
+            attributedText.setAttributes([
+                NSFontAttributeName: UIFont.boldSystemFontOfSize(change.font.pointSize),
+                NSForegroundColorAttributeName: colorChange
+                ], range: NSMakeRange(start, length))
+            change.attributedText = attributedText
         }
         else {
             change.text = ""
-            amount.text = ""
         }
 
-        if let changeValue = position.change where change != 0  {
-            if changeValue < 0 {
-                change.textColor = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
-            }
-            else {
-                change.textColor = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
-            }
+        if position.category == .Cash {
+            change.text = "-"
+        }
+
+        if let _ = app.credentials {
+            amount.text = (position.price * Double(position.quantity)).currency
         }
         else {
-            change.textColor = UIColor.blackColor()
+            amount.text = ""
         }
 
         var lineView = contentView.viewWithTag(42)
         if lineView == nil {
             lineView = UIView()
-            lineView!.frame = CGRect(x: 0, y: 0, width: 5, height: contentView.frame.height)
+            lineView!.frame = CGRect(x: 0, y: 0, width: 5, height: 55)
             lineView!.tag = 42
             contentView.addSubview(lineView!)
         }

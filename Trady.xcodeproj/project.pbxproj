@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		9D119E971C7E9A5E005DED0F /* OFXClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D119E961C7E9A5E005DED0F /* OFXClient.swift */; };
 		9D2E85941C726DAE004AAAD1 /* Position.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2E85931C726DAE004AAAD1 /* Position.swift */; };
-		9D2EACEC1C813AD6002259B6 /* CWStatusBarNotification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2EACEB1C813AD6002259B6 /* CWStatusBarNotification.swift */; };
-		9D2EACEE1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2EACED1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift */; };
 		9D3EFFD21C65587D00849DB7 /* Account.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D3EFFD11C65587D00849DB7 /* Account.swift */; };
 		9D582C7B1C7547CB004B0754 /* Charts.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9D582C791C7547CB004B0754 /* Charts.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9D5A84AD1C7CBFB5002E01A3 /* LinkViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D5A84AC1C7CBFB5002E01A3 /* LinkViewController.swift */; };
@@ -42,8 +40,6 @@
 /* Begin PBXFileReference section */
 		9D119E961C7E9A5E005DED0F /* OFXClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OFXClient.swift; sourceTree = "<group>"; };
 		9D2E85931C726DAE004AAAD1 /* Position.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Position.swift; sourceTree = "<group>"; };
-		9D2EACEB1C813AD6002259B6 /* CWStatusBarNotification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CWStatusBarNotification.swift; sourceTree = "<group>"; };
-		9D2EACED1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CWStatusBarNotificationUtils.swift; sourceTree = "<group>"; };
 		9D3EFFCB1C65210A00849DB7 /* ETradeClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ETradeClient.swift; sourceTree = "<group>"; };
 		9D3EFFD11C65587D00849DB7 /* Account.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
 		9D582C791C7547CB004B0754 /* Charts.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Charts.framework; path = Carthage/Build/iOS/Charts.framework; sourceTree = "<group>"; };
@@ -85,8 +81,6 @@
 			isa = PBXGroup;
 			children = (
 				9D5A84A71C7A55CA002E01A3 /* Bridge.h */,
-				9D2EACEB1C813AD6002259B6 /* CWStatusBarNotification.swift */,
-				9D2EACED1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift */,
 			);
 			name = Extra;
 			path = Trady;
@@ -220,9 +214,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9D2EACEE1C813AEF002259B6 /* CWStatusBarNotificationUtils.swift in Sources */,
 				9D6686431C84B6D0000A61E5 /* YahooClient.swift in Sources */,
-				9D2EACEC1C813AD6002259B6 /* CWStatusBarNotification.swift in Sources */,
 				9D119E971C7E9A5E005DED0F /* OFXClient.swift in Sources */,
 				9D6686451C856919000A61E5 /* SummaryCell.swift in Sources */,
 				9D67BFFD1C7E9DF7005D5930 /* Credentials.swift in Sources */,

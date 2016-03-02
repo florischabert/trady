@@ -55,7 +55,10 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
             else {
                 dispatch_async(dispatch_get_main_queue()) {
                     self.setWaitState(false)
-                    self.app.status.displayNotificationWithMessage("Login failed. Try again.", forDuration: 5)
+                    let alertController = UIAlertController(title: "Login failed", message: "Please check your credentials and try again.", preferredStyle: .Alert)
+                    let OKAction = UIAlertAction(title: "OK", style: .Default) { (action) in }
+                    alertController.addAction(OKAction)
+                    self.presentViewController(alertController, animated: true) {}
                 }
             }
         }

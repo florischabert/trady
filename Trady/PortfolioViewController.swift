@@ -17,6 +17,8 @@ class PortfolioViewController: UITableViewController {
 
     var expandedIndexPath: NSIndexPath?
 
+    var timer: dispatch_source_t?
+
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
@@ -41,6 +43,16 @@ class PortfolioViewController: UITableViewController {
             blurView!.frame = app.window!.frame
             app.window!.addSubview(blurView!)
         }
+
+        let updateRate = 15
+        timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, DISPATCH_TARGET_QUEUE_DEFAULT);
+        dispatch_source_set_timer(timer!, dispatch_time(DISPATCH_TIME_NOW, Int64(updateRate) * Int64(NSEC_PER_SEC)), UInt64(updateRate) * NSEC_PER_SEC, NSEC_PER_SEC)
+        dispatch_source_set_event_handler(timer!) {
+            self.refreshQuotes()
+        }
+        dispatch_resume(timer!)
+
+        self.refreshQuotes()
     }
 
     override func viewDidAppear(animated: Bool) {
@@ -53,27 +65,25 @@ class PortfolioViewController: UITableViewController {
         app.credentials = nil
         tableView.reloadData()
         backgrounded = true
+        dispatch_suspend(timer!)
     }
 
     func applicationDidBecomeActive(sender: AnyObject) {
         if backgrounded {
             refresh(self)
             backgrounded = false
+            dispatch_resume(timer!)
         }
     }
 
     func refresh(sender: AnyObject) {
         struct Status { static var refreshing = false }
 
-        self.refreshControl?.endRefreshing()
-
         if Status.refreshing {
             return
         }
 
         Status.refreshing = true
-
-        self.app.status.displayNotificationWithMessage("Syncing account...") {}
 
         var credentials = app.credentials
 
@@ -82,14 +92,16 @@ class PortfolioViewController: UITableViewController {
             (credentials, err) = Credentials.loadFromKeyChain()
             if err == errSecItemNotFound {
                 self.performSegueWithIdentifier("link", sender: self)
+                Status.refreshing = false
+                return
             }
         }
 
         let completion = {
             Status.refreshing = false
             dispatch_async(dispatch_get_main_queue()) {
-                self.app.status.dismissNotification()
                 self.tableView.reloadData()
+                self.refreshControl?.endRefreshing()
             }
         }
 
@@ -97,24 +109,32 @@ class PortfolioViewController: UITableViewController {
             app.ofx.getAccount(credentials) { account in
                 if let account = account {
                     self.account = account
-
-                    self.blurView?.removeFromSuperview()
-
-                    YahooClient.updateAccount(self.account) {
-                        completion()
-                        account.save()
+                    dispatch_async(dispatch_get_main_queue()) {
+                        self.blurView?.removeFromSuperview()
                     }
                 }
-                else {
+
+                self.refreshQuotes() {
                     completion()
-                    self.app.status.displayNotificationWithMessage("Try again later", forDuration: 5)
                 }
 
                 self.app.credentials = credentials
             }
         }
         else {
+            self.refreshQuotes() {
+                completion()
+            }
+        }
+    }
+
+    func refreshQuotes(completion: () -> Void = {}) {
+        YahooClient.updateAccount(self.account) {
             completion()
+            dispatch_async(dispatch_get_main_queue()) {
+                self.tableView.reloadData()
+            }
+            self.account.save()
         }
     }
 
@@ -181,19 +201,16 @@ extension PortfolioViewController {
 
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 
+        if indexPath.section == 0 {
+            return
+        }
+
         tableView.beginUpdates()
 
-        if indexPath.section == 0 || indexPath == expandedIndexPath {
-            expandedIndexPath = nil
-        }
-        else {
-            expandedIndexPath = indexPath
-        }
-
-        tableView.reloadRowsAtIndexPaths([NSIndexPath(forRow: 0, inSection: 0)], withRowAnimation: .Fade)
+        expandedIndexPath = indexPath == expandedIndexPath ? nil : indexPath
+        tableView.reloadRowsAtIndexPaths([NSIndexPath(forRow: 0, inSection: 0), indexPath], withRowAnimation: .Fade)
 
         tableView.endUpdates()
-
     }
 
 }

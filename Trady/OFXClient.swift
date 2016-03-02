@@ -253,9 +253,8 @@ class OFXClient {
                 }
 
                 let account = Account(credentials.account, value: (value ?? 0) + (cash ?? 0), cash: cash ?? 0)
-                account.positions.append(Position(symbol: "CASH", category: Category.Cash, price: account.cash, quantity: 1))
 
-                for positionType in ["POSMF", "POSSTOCK", "POSDEBT", "POSOPT", "POSOTHER"] {
+                for positionType in ["POSSTOCK", "POSMF", "POSDEBT", "POSOPT", "POSOTHER"] {
                     if let positions = ofx.valueForKeyPath("OFX.INVSTMTMSGSRSV1.INVSTMTTRNRS.INVSTMTRS.INVPOSLIST.\(positionType)") as? NSArray {
                         for position in positions {
                             var category = Category.Cash
@@ -281,7 +280,10 @@ class OFXClient {
                     }
                 }
 
-                account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
+                account.positions.append(Position(symbol: "CASH", category: Category.Cash, price: account.cash, quantity: 1))
+
+
+//                account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
 
                 completionHandler(account: account)
             }
