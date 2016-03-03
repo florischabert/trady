@@ -16,6 +16,7 @@ class PortfolioViewController: UITableViewController {
     var blurView: UIView?
 
     var expandedIndexPath: NSIndexPath?
+    var expandedTop = true
 
     var timer: dispatch_source_t?
 
@@ -100,8 +101,9 @@ class PortfolioViewController: UITableViewController {
         let completion = {
             Status.refreshing = false
             dispatch_async(dispatch_get_main_queue()) {
-                self.tableView.reloadData()
+                self.tableView.reloadRowsAtIndexPaths([NSIndexPath(forRow: 0, inSection: 0)], withRowAnimation: .Fade)
                 self.refreshControl?.endRefreshing()
+                self.tableView.reloadData()
             }
         }
 
@@ -190,7 +192,7 @@ extension PortfolioViewController {
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
         if indexPath.section == 0 {
-            return 305
+            return expandedTop && app.credentials != nil ? 305 : 78
         }
 
         if indexPath == expandedIndexPath {
@@ -203,6 +205,8 @@ extension PortfolioViewController {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 
         if indexPath.section == 0 {
+            expandedTop = !expandedTop
+            tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
             return
         }
 

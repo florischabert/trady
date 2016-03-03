@@ -61,11 +61,11 @@
                                         <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YDV-VS-Dke">
                                             <rect key="frame" x="0.0" y="65" width="600" height="232"/>
                                             <subviews>
-                                                <view tag="23" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j8p-9r-lqH" customClass="PieChartView" customModule="Charts">
+                                                <view tag="23" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j8p-9r-lqH" customClass="LineChartView" customModule="Charts">
                                                     <rect key="frame" x="600" y="0.0" width="600" height="232"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                 </view>
-                                                <view tag="23" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="a0S-Ya-vHb" customClass="LineChartView" customModule="Charts">
+                                                <view tag="23" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="a0S-Ya-vHb" customClass="PieChartView" customModule="Charts">
                                                     <rect key="frame" x="0.0" y="0.0" width="600" height="232"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                 </view>
@@ -108,8 +108,8 @@
                                 <connections>
                                     <outlet property="change" destination="i1I-f5-LxR" id="Wvq-1i-MhZ"/>
                                     <outlet property="chartScrollView" destination="YDV-VS-Dke" id="iJN-cK-aqr"/>
-                                    <outlet property="lineChartView" destination="a0S-Ya-vHb" id="QaF-VQ-wYP"/>
-                                    <outlet property="pieChartView" destination="j8p-9r-lqH" id="HtS-En-iwM"/>
+                                    <outlet property="lineChartView" destination="j8p-9r-lqH" id="nVl-ji-aM6"/>
+                                    <outlet property="pieChartView" destination="a0S-Ya-vHb" id="iky-1I-FO6"/>
                                     <outlet property="portfolio" destination="1xN-9t-nkc" id="3yf-FX-UV6"/>
                                     <outlet property="today" destination="sKR-Vd-EuT" id="6rV-cw-gxc"/>
                                     <outlet property="value" destination="GKh-Go-fMD" id="Blm-TS-nlk"/>

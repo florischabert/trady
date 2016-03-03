@@ -72,6 +72,14 @@ class PositionCell: UITableViewCell {
         }
         lineView!.backgroundColor = position.category.color
 
+        if let expandedRow = portfolioController?.expandedIndexPath?.row {
+            if account.positions[expandedRow] == position {
+                createChart(position)
+            }
+        }
+    }
+
+    func createChart(position: Position) {
         var dataEntries: [ChartDataEntry] = []
         for i in 0..<12 {
             let dataEntry = ChartDataEntry(value: Double(20) + Double(rand()%10), xIndex: i)

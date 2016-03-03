@@ -67,8 +67,10 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             today.hidden = true
         }
 
-        createLineChart(account)
-        createPieChart(account)
+        if portfolioController!.expandedTop {
+            createLineChart(account)
+            createPieChart(account)
+        }
     }
 
     func createPieChart(account: Account) {
