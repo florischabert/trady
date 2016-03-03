@@ -255,28 +255,44 @@ class OFXClient {
                 let account = Account(credentials.account, value: (value ?? 0) + (cash ?? 0), cash: cash ?? 0)
 
                 for positionType in ["POSSTOCK", "POSMF", "POSDEBT", "POSOPT", "POSOTHER"] {
-                    if let positions = ofx.valueForKeyPath("OFX.INVSTMTMSGSRSV1.INVSTMTTRNRS.INVSTMTRS.INVPOSLIST.\(positionType)") as? NSArray {
-                        for position in positions {
-                            var category = Category.Cash
-                            switch (positionType) {
-                                case "POSMF": category = Category.Fund
-                                case "POSSTOCK": category = Category.Equity
-                                case "POSDEBT": category = Category.Bond
-                                case "POSOPT": category = Category.Option
-                                default: Category.Cash
-                            }
 
-                            var symbol = (position.valueForKeyPath("INVPOS.MEMO") as? String)
-                            symbol = symbol?.stringByReplacingOccurrencesOfString(".", withString: "-")
+                    let invpos = ofx.valueForKeyPath("OFX.INVSTMTMSGSRSV1.INVSTMTTRNRS.INVSTMTRS.INVPOSLIST.\(positionType)")
 
-                            let position = Position(
-                                symbol: symbol ?? "UKW",
-                                category: category,
-                                price: Double(position.valueForKeyPath("INVPOS.UNITPRICE") as! String) ?? 0.0,
-                                quantity: Double(position.valueForKeyPath("INVPOS.UNITS") as! String) ?? 0
-                            )
-                            account.positions.append(position)
+                    var positions: [NSDictionary] = []
+
+                    if let invpos = invpos as? [NSDictionary] {
+                        positions = invpos
+                    }
+                    else if let invpos = invpos as? NSDictionary {
+                        positions = [invpos]
+                    }
+
+                    for position in positions {
+                        var category = Category.Cash
+                        switch (positionType) {
+                            case "POSMF": category = Category.Fund
+                            case "POSSTOCK": category = Category.Equity
+                            case "POSDEBT": category = Category.Bond
+                            case "POSOPT": category = Category.Option
+                            default: Category.Cash
                         }
+
+                        var symbol = (position.valueForKeyPath("INVPOS.MEMO") as? String)
+                        symbol = symbol?.stringByReplacingOccurrencesOfString(".", withString: "-")
+
+                        let position = Position(
+                            symbol: symbol ?? "UKW",
+                            category: category,
+                            price: Double(position.valueForKeyPath("INVPOS.UNITPRICE") as! String) ?? 0.0,
+                            quantity: Double(position.valueForKeyPath("INVPOS.UNITS") as! String) ?? 0
+                        )
+
+                        if category == Category.Bond {
+                            position.descr = "Debt Security"
+                            position.price /= 100
+                        }
+
+                        account.positions.append(position)
                     }
                 }
 
