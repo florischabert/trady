@@ -32,11 +32,11 @@ class PositionCell: UITableViewCell {
             change.text = "\(position.price.currency) \(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (position.price - changeValue)))%"
 
             var colorChange = UIColor.blackColor()
-            if account.change < 0 {
-                colorChange = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
+            if position.change < 0 {
+                colorChange = Category.Fund.color
             }
             else {
-                colorChange = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
+                colorChange = Category.Cash.color
             }
 
             let attributedText = NSMutableAttributedString(attributedString: change.attributedText!)
@@ -72,18 +72,15 @@ class PositionCell: UITableViewCell {
         }
         lineView!.backgroundColor = position.category.color
 
-        let prices: [Double] = [10, 11, 14, 12, 14, 17, 18, 9, 11, 10]
-        let names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"]
-
         var dataEntries: [ChartDataEntry] = []
-        for (i, value) in prices.enumerate() {
-            let dataEntry = ChartDataEntry(value: value, xIndex: i)
+        for i in 0..<12 {
+            let dataEntry = ChartDataEntry(value: Double(20) + Double(rand()%10), xIndex: i)
             dataEntries.append(dataEntry)
         }
 
-        let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: "$")
+        let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: position.symbol)
         lineChartDataSet.drawCubicEnabled = true
-        lineChartDataSet.cubicIntensity = 0.2
+        lineChartDataSet.cubicIntensity = 0.1
         lineChartDataSet.lineWidth = 2.3
         lineChartDataSet.circleRadius = 4
         lineChartDataSet.fillColor = UIColor.blueColor()
@@ -92,7 +89,14 @@ class PositionCell: UITableViewCell {
         lineChartDataSet.setCircleColor(position.category.color)
         lineChartDataSet.setColor(position.category.color)
         lineChartDataSet.drawValuesEnabled = false
+        lineChartDataSet.valueFont = UIFont.systemFontOfSize(8)
 
+        let formatter = NSNumberFormatter()
+        formatter.numberStyle = NSNumberFormatterStyle.CurrencyStyle
+        formatter.locale = NSLocale.currentLocale()
+        lineChartDataSet.valueFormatter = formatter
+
+        let names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         let lineChartData = LineChartData(xVals: names, dataSet: lineChartDataSet)
         chart.data = lineChartData
         chart.legend.enabled = false
@@ -100,22 +104,21 @@ class PositionCell: UITableViewCell {
         chart.descriptionText = ""
         chart.leftAxis.enabled = false
         chart.rightAxis.enabled = false
+        chart.rightAxis.valueFormatter = formatter
+        chart.rightAxis.labelFont = UIFont.systemFontOfSize(9)
+        chart.rightAxis.labelTextColor = position.category.color
+        chart.rightAxis.drawTopYLabelEntryEnabled = false
+        chart.rightAxis.setLabelCount(6, force: false)
+        chart.rightAxis.labelPosition = .InsideChart
+        chart.rightAxis.drawLimitLinesBehindDataEnabled = false
+        chart.rightAxis.drawGridLinesEnabled = false
+        chart.rightAxis.drawAxisLineEnabled = false
         chart.drawGridBackgroundEnabled = false
         chart.drawBordersEnabled = false
         chart.xAxis.drawGridLinesEnabled = false
         chart.xAxis.drawAxisLineEnabled = false
         chart.xAxis.labelPosition = .Bottom
-        chart.setViewPortOffsets(left: 20, top: 20, right: 20, bottom: 20)
-
-        //        var ratioView = cell.contentView.viewWithTag(5)
-        //        if ratioView == nil {
-        //            ratioView = UIView()
-        //            ratioView!.tag = 5
-        //            ratioView!.alpha = 0.05
-        //            cell.contentView.addSubview(ratioView!)
-        //        }
-        //        let ratioWidth = Double(cell.contentView.frame.width) * position.price * Double(position.quantity) / account.value
-        //        ratioView!.frame = CGRect(x: 0, y: 0, width: ratioWidth, height:50)
-        //        ratioView!.backgroundColor = position.category.color
+        chart.setViewPortOffsets(left: 20, top: 0, right: 20, bottom: 20)
+        chart.leftAxis.startAtZeroEnabled = false
     }
 }

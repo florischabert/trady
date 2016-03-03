@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15B36" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="0EI-8T-eZZ">
     <dependencies>
+        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
         <capability name="Alignment constraints to the first baseline" minToolsVersion="6.0"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
@@ -10,7 +11,7 @@
         <scene sceneID="sVM-FD-eKE">
             <objects>
                 <tableViewController title="Portfolio" id="0EI-8T-eZZ" customClass="PortfolioViewController" customModule="Trady" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="JDK-S0-BCN">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" showsHorizontalScrollIndicator="NO" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="JDK-S0-BCN">
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -21,7 +22,7 @@
                                 <rect key="frame" x="0.0" y="28" width="600" height="305"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="5In-Tg-L1j" id="y1v-F5-uZE">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="304.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="305"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Value" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GKh-Go-fMD">
@@ -43,7 +44,7 @@
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Change" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="i1I-f5-LxR">
                                             <rect key="frame" x="0.0" y="42" width="600" height="15"/>
                                             <gestureRecognizers/>
-                                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="13"/>
                                             <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
@@ -57,35 +58,58 @@
                                             <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
-                                        <view tag="23" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="a0S-Ya-vHb" customClass="PieChartView" customModule="Charts">
-                                            <rect key="frame" x="0.0" y="70" width="600" height="224.5"/>
-                                            <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                        </view>
+                                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YDV-VS-Dke">
+                                            <rect key="frame" x="0.0" y="65" width="600" height="232"/>
+                                            <subviews>
+                                                <view tag="23" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j8p-9r-lqH" customClass="PieChartView" customModule="Charts">
+                                                    <rect key="frame" x="600" y="0.0" width="600" height="232"/>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                </view>
+                                                <view tag="23" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="a0S-Ya-vHb" customClass="LineChartView" customModule="Charts">
+                                                    <rect key="frame" x="0.0" y="0.0" width="600" height="232"/>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                </view>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="a0S-Ya-vHb" firstAttribute="leading" secondItem="YDV-VS-Dke" secondAttribute="leading" id="5Yu-Hx-bbz"/>
+                                                <constraint firstItem="j8p-9r-lqH" firstAttribute="bottom" secondItem="a0S-Ya-vHb" secondAttribute="bottom" id="Jt4-aL-fnn"/>
+                                                <constraint firstItem="j8p-9r-lqH" firstAttribute="width" secondItem="a0S-Ya-vHb" secondAttribute="width" id="Q7F-Om-Ybp"/>
+                                                <constraint firstItem="j8p-9r-lqH" firstAttribute="top" secondItem="a0S-Ya-vHb" secondAttribute="top" id="Sqc-39-t14"/>
+                                                <constraint firstAttribute="bottom" secondItem="a0S-Ya-vHb" secondAttribute="bottom" id="WAc-ng-fPi"/>
+                                                <constraint firstItem="a0S-Ya-vHb" firstAttribute="centerX" secondItem="YDV-VS-Dke" secondAttribute="centerX" id="Xhc-rE-3iV"/>
+                                                <constraint firstItem="a0S-Ya-vHb" firstAttribute="height" secondItem="YDV-VS-Dke" secondAttribute="height" id="iR4-dK-Xio"/>
+                                                <constraint firstAttribute="trailing" secondItem="a0S-Ya-vHb" secondAttribute="trailing" id="iaC-wT-xVZ"/>
+                                                <constraint firstItem="j8p-9r-lqH" firstAttribute="leading" secondItem="a0S-Ya-vHb" secondAttribute="trailing" id="jhy-o8-0ND"/>
+                                                <constraint firstItem="a0S-Ya-vHb" firstAttribute="top" secondItem="YDV-VS-Dke" secondAttribute="top" id="nbh-Zm-11b"/>
+                                            </constraints>
+                                        </scrollView>
                                     </subviews>
                                     <constraints>
                                         <constraint firstItem="1xN-9t-nkc" firstAttribute="leading" secondItem="y1v-F5-uZE" secondAttribute="leadingMargin" constant="38" id="31J-pm-7ra"/>
+                                        <constraint firstItem="YDV-VS-Dke" firstAttribute="leading" secondItem="i1I-f5-LxR" secondAttribute="leading" id="5lN-zP-qC3"/>
                                         <constraint firstItem="1xN-9t-nkc" firstAttribute="centerY" secondItem="GKh-Go-fMD" secondAttribute="centerY" id="APq-rp-MTE"/>
+                                        <constraint firstItem="YDV-VS-Dke" firstAttribute="top" secondItem="i1I-f5-LxR" secondAttribute="bottom" constant="8" symbolic="YES" id="AZ7-Tv-7ga"/>
+                                        <constraint firstItem="YDV-VS-Dke" firstAttribute="trailing" secondItem="i1I-f5-LxR" secondAttribute="trailing" id="D7s-Pd-q6P"/>
                                         <constraint firstItem="sKR-Vd-EuT" firstAttribute="leading" secondItem="y1v-F5-uZE" secondAttribute="leadingMargin" constant="53" id="DA8-N7-HgZ"/>
                                         <constraint firstItem="i1I-f5-LxR" firstAttribute="leading" secondItem="y1v-F5-uZE" secondAttribute="leading" id="DNv-EU-KZQ"/>
-                                        <constraint firstItem="i1I-f5-LxR" firstAttribute="trailing" secondItem="a0S-Ya-vHb" secondAttribute="trailing" id="EVy-Mb-RBW"/>
                                         <constraint firstAttribute="trailing" secondItem="i1I-f5-LxR" secondAttribute="trailing" id="GDR-yM-RDf"/>
+                                        <constraint firstAttribute="bottomMargin" secondItem="YDV-VS-Dke" secondAttribute="bottom" constant="-0.5" id="IOD-m0-4ab"/>
                                         <constraint firstItem="i1I-f5-LxR" firstAttribute="top" secondItem="1xN-9t-nkc" secondAttribute="bottom" constant="6" id="IqL-Zn-Ewg"/>
                                         <constraint firstItem="GKh-Go-fMD" firstAttribute="top" secondItem="y1v-F5-uZE" secondAttribute="topMargin" constant="6" id="KkA-8h-xKK"/>
                                         <constraint firstItem="i1I-f5-LxR" firstAttribute="top" secondItem="GKh-Go-fMD" secondAttribute="bottom" constant="1" id="ZnV-iT-VVF"/>
-                                        <constraint firstItem="a0S-Ya-vHb" firstAttribute="leading" secondItem="i1I-f5-LxR" secondAttribute="leading" id="d5z-sL-gOf"/>
                                         <constraint firstItem="sKR-Vd-EuT" firstAttribute="trailing" secondItem="1xN-9t-nkc" secondAttribute="trailing" id="hrh-Oo-wU8"/>
                                         <constraint firstItem="i1I-f5-LxR" firstAttribute="leading" secondItem="GKh-Go-fMD" secondAttribute="leading" id="hvX-5D-iyB"/>
-                                        <constraint firstAttribute="bottomMargin" secondItem="a0S-Ya-vHb" secondAttribute="bottom" constant="2" id="i2V-DU-K4h"/>
                                         <constraint firstItem="i1I-f5-LxR" firstAttribute="centerY" secondItem="sKR-Vd-EuT" secondAttribute="centerY" id="rTi-XS-dad"/>
                                         <constraint firstItem="GKh-Go-fMD" firstAttribute="trailing" secondItem="i1I-f5-LxR" secondAttribute="trailing" id="uDw-uE-LPz"/>
                                         <constraint firstItem="sKR-Vd-EuT" firstAttribute="top" secondItem="GKh-Go-fMD" secondAttribute="bottom" constant="2" id="xi6-ei-sDJ"/>
-                                        <constraint firstItem="a0S-Ya-vHb" firstAttribute="top" secondItem="i1I-f5-LxR" secondAttribute="bottom" constant="13" id="y2I-XV-xJg"/>
                                     </constraints>
                                 </tableViewCellContentView>
                                 <inset key="separatorInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 <connections>
                                     <outlet property="change" destination="i1I-f5-LxR" id="Wvq-1i-MhZ"/>
-                                    <outlet property="chart" destination="a0S-Ya-vHb" id="KGW-O5-rDr"/>
+                                    <outlet property="chartScrollView" destination="YDV-VS-Dke" id="iJN-cK-aqr"/>
+                                    <outlet property="lineChartView" destination="a0S-Ya-vHb" id="QaF-VQ-wYP"/>
+                                    <outlet property="pieChartView" destination="j8p-9r-lqH" id="HtS-En-iwM"/>
                                     <outlet property="portfolio" destination="1xN-9t-nkc" id="3yf-FX-UV6"/>
                                     <outlet property="today" destination="sKR-Vd-EuT" id="6rV-cw-gxc"/>
                                     <outlet property="value" destination="GKh-Go-fMD" id="Blm-TS-nlk"/>

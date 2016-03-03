@@ -47,4 +47,14 @@ class Account: NSObject, NSCoding {
         defaults.synchronize()
     }
 
+    func valueForCategory(category: Category) -> Double {
+        var value: Double = 0
+        for position in positions {
+            if category == position.category {
+                value += position.price * position.quantity
+            }
+        }
+        return value
+    }
+
 }

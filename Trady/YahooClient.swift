@@ -77,4 +77,13 @@ class YahooClient {
         task.resume()
     }
 
+    func historical() {
+//        let stocks = ["AAPL", "QQQ"].map{"\($0)"}.joinWithSeparator(",")
+//        let startDate = ""
+//        let endDate = ""
+//        let baseURL = "http://query.yahooapis.com/v1/public/yql?q="
+//        let query = "select * from yahoo.finance.historicaldata where symbol in {\(stocks)} and startDate = \"\(startDate)\" and endDate = \"\(endDate)\""
+//        let postfix = "&env=store://datatables.org/alltableswithkeys&format=json&callback=?"
+    }
+
 }

@@ -9,13 +9,16 @@
 import Charts
 import UIKit
 
-class SummaryCell: UITableViewCell, ChartViewDelegate {
+class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
 
     @IBOutlet weak var value: UILabel!
     @IBOutlet weak var change: UILabel!
     @IBOutlet weak var portfolio: UILabel!
     @IBOutlet weak var today: UILabel!
-    @IBOutlet weak var chart: PieChartView!
+
+    @IBOutlet weak var chartScrollView: UIScrollView!
+    @IBOutlet weak var pieChartView: PieChartView!
+    @IBOutlet weak var lineChartView: LineChartView!
 
     weak var portfolioController: PortfolioViewController?
 
@@ -24,8 +27,11 @@ class SummaryCell: UITableViewCell, ChartViewDelegate {
     }
     
     func update(account: Account) {
+        chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
+
         if let _ = app.credentials {
             value.text = account.value.currency
+            change.text = "-"
 
             var text = account.change?.currency ?? "-"
             if let changeValue = account.change {
@@ -61,40 +67,35 @@ class SummaryCell: UITableViewCell, ChartViewDelegate {
             today.hidden = true
         }
 
-        setupChart(account)
+        createLineChart(account)
+        createPieChart(account)
     }
 
-    func setupChart(account: Account) {
-        chart.delegate = self
-        chart.legend.enabled = true
-        chart.descriptionText = ""
-        chart.usePercentValuesEnabled = true
-        chart.drawHoleEnabled = true
-        chart.holeTransparent = true
-        chart.transparentCircleRadiusPercent = 0.47
-        chart.holeRadiusPercent = 0.45
-        chart.rotationEnabled = false
-        chart.legend.position = .BelowChartCenter
-        chart.legend.form = .Circle
-        chart.legend.setCustom(colors: Category.colors, labels: Category.names)
-        chart.userInteractionEnabled = app.credentials == nil ? false : true
+    func createPieChart(account: Account) {
+        pieChartView.delegate = self
+        pieChartView.legend.enabled = true
+        pieChartView.descriptionText = ""
+        pieChartView.usePercentValuesEnabled = true
+        pieChartView.drawHoleEnabled = true
+        pieChartView.holeTransparent = true
+        pieChartView.transparentCircleRadiusPercent = 0.47
+        pieChartView.holeRadiusPercent = 0.45
+        pieChartView.rotationEnabled = false
+        pieChartView.legend.position = .BelowChartCenter
+        pieChartView.legend.form = .Circle
+        pieChartView.legend.setCustom(colors: Category.colors, labels: Category.names)
+        pieChartView.userInteractionEnabled = false
+        pieChartView.hidden = app.credentials == nil ? true : false
 
         var ratios: [ChartDataEntry] = []
         var names: [String] = []
         var colors: [UIColor] = []
 
-        if let _ = app.credentials {
-            for (index, position) in account.positions.enumerate() {
-                let ratio = (position.price * Double(position.quantity)) / account.value
-                names.append( ratio > 0.1 ? position.symbol : "")
-                colors.append(position.category.color)
-                ratios.append(ChartDataEntry(value: ratio, xIndex: index))
-            }
-        }
-        else {
+        for (index, position) in account.positions.enumerate() {
+            let ratio = (position.price * position.quantity) / account.value
             names.append("")
-            colors.append(Category.allValues.first!.color)
-            ratios.append(ChartDataEntry(value: 1, xIndex: 0))
+            colors.append(position.category.color)
+            ratios.append(ChartDataEntry(value: ratio, xIndex: index))
         }
 
         let pieChartDataSet = PieChartDataSet(yVals: ratios, label: "")
@@ -104,33 +105,64 @@ class SummaryCell: UITableViewCell, ChartViewDelegate {
         pieChartDataSet.drawValuesEnabled = false
         pieChartDataSet.selectionShift = 6
 
-        if let _ = app.credentials {
-            if let expandedIndexPath = self.portfolioController?.expandedIndexPath {
-                self.chart.highlightValues([ChartHighlight(xIndex: expandedIndexPath.row, dataSetIndex: 0)])
-            }
-            else {
-                self.chart.highlightValues(nil)
-            }
-        }
-
         let pieChartData = PieChartData(xVals: names, dataSet: pieChartDataSet)
-        chart.data = pieChartData
+        pieChartView.data = pieChartData
     }
 
-    func chartValueSelected(chartView: Charts.ChartViewBase, entry: Charts.ChartDataEntry, dataSetIndex: Int, highlight: Charts.ChartHighlight) {
-        portfolioController?.tableView.beginUpdates()
-        portfolioController?.expandedIndexPath = NSIndexPath(forRow: entry.xIndex, inSection: 1)
-        portfolioController?.tableView.endUpdates()
+    func createLineChart(account: Account) {
 
-        if !portfolioController!.tableView.indexPathsForVisibleRows!.contains(portfolioController!.expandedIndexPath!) {
-            portfolioController?.tableView.scrollToRowAtIndexPath(portfolioController!.expandedIndexPath!, atScrollPosition: .Middle, animated: true)
+        var dataSets: [LineChartDataSet] = []
+
+        if let _ = app.credentials {
+            var dataEntries: [ChartDataEntry] = []
+            for i in 0..<12 {
+                let dataEntry = ChartDataEntry(value: Double(10) + Double(rand()%10), xIndex: i)
+                dataEntries.append(dataEntry)
+            }
+            dataSets.append(LineChartDataSet(yVals: dataEntries, label: "Portfolio"))
         }
-    }
 
-    func chartValueNothingSelected(chartView: Charts.ChartViewBase) {
-        portfolioController?.tableView.beginUpdates()
-        portfolioController?.expandedIndexPath = nil
-        portfolioController?.tableView.endUpdates()
+        for symbol in ["S&P 500 Index"] {
+            var dataEntries: [ChartDataEntry] = []
+            for i in 0..<12 {
+                let dataEntry = ChartDataEntry(value: Double(10) + Double(rand()%10), xIndex: i)
+                dataEntries.append(dataEntry)
+            }
+            dataSets.append(LineChartDataSet(yVals: dataEntries, label: symbol))
+        }
+
+        for (i, set) in dataSets.enumerate() {
+            set.drawCubicEnabled = true
+            set.cubicIntensity = 0.1
+            set.lineWidth = 2.3
+            set.circleRadius = 4
+            set.drawHorizontalHighlightIndicatorEnabled = false
+            set.drawValuesEnabled = false
+
+            let color = Category.allValues[i].color
+            set.setCircleColor(color)
+            set.setColor(color)
+        }
+
+        let names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        let lineChartData = LineChartData(xVals: names, dataSets: dataSets)
+        lineChartView.data = lineChartData
+        lineChartView.legend.enabled = true
+        lineChartView.legend.yEntrySpace = 20
+        lineChartView.legend.position = .BelowChartCenter
+        lineChartView.legend.form = .Line
+        lineChartView.userInteractionEnabled = false
+        lineChartView.descriptionText = ""
+        lineChartView.leftAxis.enabled = false
+        lineChartView.rightAxis.enabled = false
+        lineChartView.drawGridBackgroundEnabled = false
+        lineChartView.drawBordersEnabled = false
+        lineChartView.xAxis.enabled = false
+        lineChartView.xAxis.drawGridLinesEnabled = true
+        lineChartView.xAxis.drawAxisLineEnabled = false
+        lineChartView.xAxis.labelPosition = .Bottom
+        lineChartView.setViewPortOffsets(left: 20, top: 15, right: 20, bottom: 30)
+        lineChartView.leftAxis.startAtZeroEnabled = false
     }
 
 }

@@ -48,7 +48,6 @@ class Position: NSObject, NSCoding {
         if category == .Cash {
             self.descr = "Available Cash"
         }
-
     }
 
     required convenience init(coder decoder: NSCoder) {

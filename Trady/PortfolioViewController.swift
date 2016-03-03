@@ -212,8 +212,6 @@ extension PortfolioViewController {
         tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
 
         tableView.endUpdates()
-
-        tableView.reloadRowsAtIndexPaths([NSIndexPath(forRow: 0, inSection: 0)], withRowAnimation: .None)
     }
 
 }
