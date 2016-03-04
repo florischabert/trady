@@ -17,7 +17,6 @@ class PortfolioViewController: UITableViewController {
     var blurView: UIView?
 
     var expandedIndexPath: NSIndexPath?
-    var expandedTop = true
 
     var timer: dispatch_source_t?
 
@@ -25,14 +24,49 @@ class PortfolioViewController: UITableViewController {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
 
+    func setupTableView() {
+        refreshControl = UIRefreshControl()
+        refreshControl?.hidden = true
+        refreshControl?.backgroundColor = UIColor(red: 0.99, green: 0.99, blue: 0.99, alpha: 1)
+        refreshControl?.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
+
+        let px = 1 / UIScreen.mainScreen().scale
+        let frame = CGRectMake(0, 0, self.tableView.frame.size.width, px)
+        let line: UIView = UIView(frame: frame)
+        tableView.tableHeaderView = line
+        line.backgroundColor = tableView.separatorColor
+
+        tableView.contentInset = UIEdgeInsetsMake(-1, 0, 0, 0);
+    }
+
+    func rotateView(view: UIView, duration: Double = 1) {
+        if view.layer.animationForKey("io.trady.refreshanimation") == nil {
+            let rotationAnimation = CABasicAnimation(keyPath: "transform.rotation")
+
+            rotationAnimation.fromValue = 0.0
+            rotationAnimation.toValue = Float(M_PI * 2.0)
+            rotationAnimation.duration = duration
+            rotationAnimation.repeatCount = Float.infinity
+
+            view.layer.addAnimation(rotationAnimation, forKey: "io.trady.refreshanimation")
+        }
+    }
+
+    func stopRotatingView(view: UIView) {
+        if view.layer.animationForKey("io.trady.refreshanimation") != nil {
+            view.layer.removeAnimationForKey("io.trady.refreshanimation")
+        }
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.tableView.contentInset = UIEdgeInsetsMake(20, 0, 0, 0)
+        let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 38, height: 38))
+        imageView.image = UIImage(named: "iTunesArtwork")
+        imageView.contentMode = .ScaleAspectFit
+        navigationItem.titleView = imageView
 
-        self.refreshControl = UIRefreshControl()
-        self.refreshControl?.hidden = true
-        self.refreshControl!.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
+        setupTableView()
 
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidEnterBackground:"), name:UIApplicationDidEnterBackgroundNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidBecomeActive:"), name:UIApplicationDidBecomeActiveNotification, object: nil)
@@ -143,12 +177,6 @@ class PortfolioViewController: UITableViewController {
         }
     }
 
-    override func scrollViewDidScroll(scrollView: UIScrollView) {
-        let offset = scrollView.contentOffset.y + 20
-        let statusBarWindow = UIApplication.sharedApplication().valueForKey("statusBarWindow") as! UIWindow
-        statusBarWindow.frame = CGRect(x: 0, y: offset > 0 ? -offset : 0, width: statusBarWindow.frame.size.width, height: statusBarWindow.frame.size.height)
-    }
-
 }
 
 extension Double {
@@ -195,11 +223,11 @@ extension PortfolioViewController {
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
         if indexPath.section == 0 {
-            return expandedTop && app.credentials != nil ? 305 : 78
+            return app.credentials != nil ? 305 : 0
         }
 
         let category = account.positions[indexPath.row].category
-        let shouldExpand = category != Category.Cash && category != Category.Bond
+        let shouldExpand = category == Category.Equity || category == Category.Fund
         if indexPath == expandedIndexPath && shouldExpand {
             return 200
         }
@@ -210,8 +238,6 @@ extension PortfolioViewController {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 
         if indexPath.section == 0 {
-            expandedTop = !expandedTop
-            tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
             return
         }
 

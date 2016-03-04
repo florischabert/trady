@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15B36" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="0EI-8T-eZZ">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9532" systemVersion="15B36" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="mE3-aT-D1N">
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9530"/>
@@ -7,12 +7,29 @@
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
+        <!--Navigation Controller-->
+        <scene sceneID="AnX-nf-kj1">
+            <objects>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="L2x-Me-IgP" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <navigationController id="mE3-aT-D1N" sceneMemberID="viewController">
+                    <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" translucent="NO" prompted="NO"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" translucent="NO" id="9R5-m4-ifS">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="0EI-8T-eZZ" kind="relationship" relationship="rootViewController" id="4dJ-IV-ldJ"/>
+                    </connections>
+                </navigationController>
+            </objects>
+            <point key="canvasLocation" x="-1291" y="591"/>
+        </scene>
         <!--Portfolio-->
         <scene sceneID="sVM-FD-eKE">
             <objects>
                 <tableViewController title="Portfolio" id="0EI-8T-eZZ" customClass="PortfolioViewController" customModule="Trady" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" showsHorizontalScrollIndicator="NO" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="JDK-S0-BCN">
-                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <gestureRecognizers/>
@@ -201,7 +218,9 @@
                             <outlet property="delegate" destination="0EI-8T-eZZ" id="LtX-rD-Shg"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Trady" id="wfl-6w-RKk"/>
+                    <navigationItem key="navigationItem" title="Trady" id="wfl-6w-RKk">
+                        <barButtonItem key="rightBarButtonItem" id="mWq-rH-1B2"/>
+                    </navigationItem>
                     <connections>
                         <segue destination="WiJ-Mt-bPx" kind="presentation" identifier="link" id="8m7-hb-NSl"/>
                     </connections>
@@ -227,13 +246,6 @@
                                 <constraints>
                                     <constraint firstAttribute="height" constant="30" id="HvL-n2-Q5g"/>
                                     <constraint firstAttribute="width" constant="166" id="tDm-5Y-HU2"/>
-                                </constraints>
-                            </imageView>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="iTunesArtwork" translatesAutoresizingMaskIntoConstraints="NO" id="Wmm-ZY-51V">
-                                <rect key="frame" x="180" y="180" width="240" height="240"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="240" id="hWu-dM-O5d"/>
-                                    <constraint firstAttribute="width" constant="240" id="zk6-Gm-jsh"/>
                                 </constraints>
                             </imageView>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Username" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="m1Q-m0-wcl">
@@ -263,6 +275,13 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="18"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="iTunesArtwork" translatesAutoresizingMaskIntoConstraints="NO" id="Wmm-ZY-51V">
+                                <rect key="frame" x="180" y="180" width="240" height="240"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="240" id="hWu-dM-O5d"/>
+                                    <constraint firstAttribute="width" constant="240" id="zk6-Gm-jsh"/>
+                                </constraints>
+                            </imageView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <gestureRecognizers/>

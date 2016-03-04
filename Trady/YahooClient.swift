@@ -90,7 +90,6 @@ class YahooClient {
         let endDate = dateFormatter.stringFromDate(NSDate())
         let baseURL = "https://query.yahooapis.com/v1/public/yql?q="
         let query = "select * from yahoo.finance.historicaldata where symbol in (\(stocks)) and startDate = \"\(startDate)\" and endDate = \"\(endDate)\""
-        print(query)
         let postfix = "&env=store://datatables.org/alltableswithkeys&format=json&callback="
         let urlString = (baseURL + query + postfix).stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())
         let urlRequest = NSURLRequest(URL: NSURL(string: urlString!)!)
@@ -107,8 +106,8 @@ class YahooClient {
                 return
             }
 
-            if let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding) as? String {
-                print(responseString)
+            if let _ = NSString(data: data!, encoding: NSUTF8StringEncoding) as? String {
+//                print(responseString)
             }
             completion()
         }

@@ -293,7 +293,9 @@ class OFXClient {
                         }
 
                         if category == Category.Option {
-                            position.descr = "Option"
+                            let components = position.symbol.componentsSeparatedByString(" ")
+                            position.symbol = components.first ?? position.symbol
+                            position.descr = components[1..<components.endIndex].joinWithSeparator(" ")
                             position.price *= 100
                         }
 
