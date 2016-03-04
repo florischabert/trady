@@ -16,6 +16,8 @@ class Account: NSObject, NSCoding {
 
     var positions: [Position] = []
 
+    let syncQueue = dispatch_queue_create(nil, DISPATCH_QUEUE_SERIAL)
+
     init(_ id: String, value: Double, cash: Double) {
         self.id = id
         self.value = value
@@ -57,4 +59,9 @@ class Account: NSObject, NSCoding {
         return value
     }
 
+    func sync(block: (Void) -> Void) {
+        dispatch_sync(syncQueue) {
+            block()
+        }
+    }
 }

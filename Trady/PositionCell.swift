@@ -52,7 +52,7 @@ class PositionCell: UITableViewCell {
             change.text = ""
         }
 
-        if position.category == .Cash {
+        if position.category != .Fund && position.category != .Equity {
             change.text = "-"
         }
 

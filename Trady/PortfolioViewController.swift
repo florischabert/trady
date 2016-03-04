@@ -12,6 +12,7 @@ import Charts
 class PortfolioViewController: UITableViewController {
 
     var account: Account = Account("", value: 0, cash: 0)
+
     var backgrounded = false
     var blurView: UIView?
 
@@ -54,6 +55,8 @@ class PortfolioViewController: UITableViewController {
         dispatch_resume(timer!)
 
         self.refreshQuotes()
+
+        YahooClient.historical(account) {}
     }
 
     override func viewDidAppear(animated: Bool) {
@@ -195,7 +198,9 @@ extension PortfolioViewController {
             return expandedTop && app.credentials != nil ? 305 : 78
         }
 
-        if indexPath == expandedIndexPath {
+        let category = account.positions[indexPath.row].category
+        let shouldExpand = category != Category.Cash && category != Category.Bond
+        if indexPath == expandedIndexPath && shouldExpand {
             return 200
         }
 

@@ -292,13 +292,21 @@ class OFXClient {
                             position.price /= 100
                         }
 
-                        account.positions.append(position)
+                        if category == Category.Option {
+                            position.descr = "Option"
+                            position.price *= 100
+                        }
+
+                        account.sync() {
+                            account.positions.append(position)
+                        }
                     }
                 }
 
-                account.positions.append(Position(symbol: "CASH", category: Category.Cash, price: account.cash, quantity: 1))
-
-                account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
+                account.sync() {
+                    account.positions.append(Position(symbol: "CASH", category: Category.Cash, price: account.cash, quantity: 1))
+                    account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
+                }
 
                 completionHandler(account: account)
             }
