@@ -78,4 +78,22 @@ class Credentials: NSObject, NSCoding {
         return (credentials, err)
     }
 
+    static func deleteFromKeyChain() {
+        let accessControlError:UnsafeMutablePointer<Unmanaged<CFError>?> = nil
+        let accessControlRef = SecAccessControlCreateWithFlags(
+            kCFAllocatorDefault,
+            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+            SecAccessControlCreateFlags.UserPresence,
+            accessControlError
+        )
+
+        let query: [NSString : AnyObject] = [
+            kSecClass : kSecClassGenericPassword,
+            kSecAttrAccessControl: accessControlRef!,
+            kSecAttrService : "Trady",
+        ]
+
+        SecItemDelete(query)
+    }
+
 }

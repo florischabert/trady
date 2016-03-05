@@ -14,7 +14,9 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var username: UITextField!
     @IBOutlet weak var password: UITextField!
     @IBOutlet weak var cancelButton: UIButton!
-
+    @IBOutlet weak var unlinkButton: UIButton!
+    @IBOutlet weak var account: UILabel!
+    
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
@@ -24,12 +26,29 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
 
         username.delegate = self
         password.delegate = self
-
-        username.becomeFirstResponder()
-
-        cancelButton.hidden = app.credentials == nil
+        
+        update()
     }
 
+    func update() {
+        cancelButton.hidden = app.credentials == nil
+        unlinkButton.hidden = app.credentials == nil
+        account.hidden = app.credentials == nil
+        username.hidden = app.credentials != nil
+        password.hidden = app.credentials != nil
+        username.becomeFirstResponder()
+
+        if let cred = app.credentials {
+            account.text = "Currently linked with account \(cred.account)"
+        }
+    }
+
+    @IBAction func unlink(sender: AnyObject) {
+        app.credentials = nil
+        Credentials.deleteFromKeyChain()
+        update()
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
