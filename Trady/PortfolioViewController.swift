@@ -138,17 +138,16 @@ class PortfolioViewController: UITableViewController {
 
         Status.refreshing = true
 
-        var credentials = app.credentials
-
         if app.credentials == nil {
             let err: OSStatus
-            (credentials, err) = Credentials.loadFromKeyChain()
+            (app.credentials, err) = Credentials.loadFromKeyChain()
             if err == errSecItemNotFound {
                 self.performSegueWithIdentifier("link", sender: self)
                 Status.refreshing = false
                 return
             }
         }
+        self.tableView.reloadData()
 
         let completion = {
             Status.refreshing = false
@@ -158,7 +157,7 @@ class PortfolioViewController: UITableViewController {
             }
         }
 
-        if let credentials = credentials {
+        if let credentials = app.credentials {
             app.ofx.getAccount(credentials) { account in
                 if let account = account {
                     self.account = account
@@ -167,8 +166,6 @@ class PortfolioViewController: UITableViewController {
                 self.refreshQuotes() {
                     completion()
                 }
-
-                self.app.credentials = credentials
             }
         }
         else {

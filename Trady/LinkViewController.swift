@@ -13,7 +13,6 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var text: UITextView!
     @IBOutlet weak var username: UITextField!
     @IBOutlet weak var password: UITextField!
-    @IBOutlet weak var cancelButton: UIButton!
     @IBOutlet weak var unlinkButton: UIButton!
     @IBOutlet weak var account: UILabel!
     
@@ -31,15 +30,16 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
     }
 
     func update() {
-        cancelButton.hidden = app.credentials == nil
         unlinkButton.hidden = app.credentials == nil
         account.hidden = app.credentials == nil
         username.hidden = app.credentials != nil
         password.hidden = app.credentials != nil
-        username.becomeFirstResponder()
 
         if let cred = app.credentials {
             account.text = "Currently linked with account \(cred.account)"
+        }
+        else {
+            username.becomeFirstResponder()
         }
     }
 
@@ -53,12 +53,13 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
         super.didReceiveMemoryWarning()
     }
 
-    @IBAction func cancel(sender: AnyObject) {
-        self.dismissViewControllerAnimated(true) {}
-    }
-
     @IBAction func done(sender: AnyObject) {
-        linkAccount(sender)
+        if let _ = app.credentials {
+            self.dismissViewControllerAnimated(true) {}
+        }
+        else {
+            linkAccount(sender)
+        }
     }
 
     func setWaitState(isWaiting: Bool = true) {
