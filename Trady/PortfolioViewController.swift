@@ -11,14 +11,21 @@ import Charts
 
 class PortfolioViewController: UITableViewController {
 
-    var account: Account = Account("", value: 0, cash: 0)
+    var account = Account("", value: 0, cash: 0, positions: [
+        Position("SPY", category: Category.Equity, price: 100, quantity: 1),
+        Position("QQQ", category: Category.Equity, price: 100, quantity: 1),
+        Position("AAPL", category: Category.Equity, price: 100, quantity: 1),
+        Position("GOOG", category: Category.Equity, price: 100, quantity: 1),
+        Position("TSLA", category: Category.Equity, price: 100, quantity: 1),
+    ])
 
     var backgrounded = false
-    var blurView: UIView?
 
     var expandedIndexPath: NSIndexPath?
 
     var timer: dispatch_source_t?
+
+    var hideStatusBar = false
 
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
@@ -39,7 +46,7 @@ class PortfolioViewController: UITableViewController {
         tableView.contentInset = UIEdgeInsetsMake(-1, 0, 0, 0);
     }
 
-    func rotateView(view: UIView, duration: Double = 1) {
+    func rotateTitle(duration: Double = 1) {
         if view.layer.animationForKey("io.trady.refreshanimation") == nil {
             let rotationAnimation = CABasicAnimation(keyPath: "transform.rotation")
 
@@ -48,23 +55,31 @@ class PortfolioViewController: UITableViewController {
             rotationAnimation.duration = duration
             rotationAnimation.repeatCount = Float.infinity
 
-            view.layer.addAnimation(rotationAnimation, forKey: "io.trady.refreshanimation")
+            navigationItem.titleView?.layer.addAnimation(rotationAnimation, forKey: "io.trady.refreshanimation")
         }
     }
 
-    func stopRotatingView(view: UIView) {
-        if view.layer.animationForKey("io.trady.refreshanimation") != nil {
-            view.layer.removeAnimationForKey("io.trady.refreshanimation")
+    func stopRotatingTitle() {
+        if navigationItem.titleView?.layer.animationForKey("io.trady.refreshanimation") != nil {
+            navigationItem.titleView?.layer.removeAnimationForKey("io.trady.refreshanimation")
         }
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 38, height: 38))
-        imageView.image = UIImage(named: "iTunesArtwork")
-        imageView.contentMode = .ScaleAspectFit
-        navigationItem.titleView = imageView
+        let buttonView = UIView(frame: CGRectMake(0, 0, 40, 40))
+        let button = UIButton(type: .Custom)
+        button.setBackgroundImage(UIImage(named: "TopImage"), forState: .Normal)
+        button.adjustsImageWhenHighlighted = false
+        button.frame = CGRectMake(0, 0, 40, 40)
+        button.addTarget(self, action: "link:", forControlEvents: .TouchUpInside)
+        buttonView.addSubview(button)
+        navigationItem.titleView = buttonView
+
+//        rotateTitle()
+
+//        navigationController?.hidesBarsOnSwipe = true
 
         setupTableView()
 
@@ -73,11 +88,6 @@ class PortfolioViewController: UITableViewController {
 
         if let data = NSUserDefaults.standardUserDefaults().objectForKey("account") as? NSData {
             account = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! Account
-        }
-        else {
-            blurView = UIVisualEffectView(effect: UIBlurEffect(style: .ExtraLight))
-            blurView!.frame = app.window!.frame
-            app.window!.addSubview(blurView!)
         }
 
         let updateRate = 15
@@ -90,7 +100,7 @@ class PortfolioViewController: UITableViewController {
 
         self.refreshQuotes()
 
-        YahooClient.historical(account) {}
+        YahooClient.historical(account)
     }
 
     override func viewDidAppear(animated: Bool) {
@@ -112,6 +122,10 @@ class PortfolioViewController: UITableViewController {
             backgrounded = false
             dispatch_resume(timer!)
         }
+    }
+
+    func link(sender: AnyObject) {
+        self.performSegueWithIdentifier("link", sender: self)
     }
 
     func refresh(sender: AnyObject) {
@@ -138,7 +152,6 @@ class PortfolioViewController: UITableViewController {
         let completion = {
             Status.refreshing = false
             dispatch_async(dispatch_get_main_queue()) {
-                self.tableView.reloadRowsAtIndexPaths([NSIndexPath(forRow: 0, inSection: 0)], withRowAnimation: .Fade)
                 self.refreshControl?.endRefreshing()
                 self.tableView.reloadData()
             }
@@ -148,9 +161,6 @@ class PortfolioViewController: UITableViewController {
             app.ofx.getAccount(credentials) { account in
                 if let account = account {
                     self.account = account
-                    dispatch_async(dispatch_get_main_queue()) {
-                        self.blurView?.removeFromSuperview()
-                    }
                 }
 
                 self.refreshQuotes() {
@@ -196,7 +206,12 @@ extension PortfolioViewController {
             return 1
         }
 
-        return account.positions.count ?? 0
+        var count = 0
+        account.sync {
+            count = self.account.positions.count
+        }
+
+        return count
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -210,8 +225,13 @@ extension PortfolioViewController {
 
         let cell = tableView.dequeueReusableCellWithIdentifier("PositionCell")! as! PositionCell
         cell.portfolioController = self
-        let position = account.positions[indexPath.row]
-        cell.update(account, position: position)
+        cell.expanded = indexPath == expandedIndexPath
+
+        var position: Position?
+        account.sync {
+            position = self.account.positions[indexPath.row]
+        }
+        cell.update(account, position: position!)
         return cell
     }
 
@@ -223,10 +243,14 @@ extension PortfolioViewController {
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
         if indexPath.section == 0 {
-            return app.credentials != nil ? 305 : 0
+            return 305
         }
 
-        let category = account.positions[indexPath.row].category
+        var category: Category?
+        account.sync {
+            category = self.account.positions[indexPath.row].category
+        }
+
         let shouldExpand = category == Category.Equity || category == Category.Fund
         if indexPath == expandedIndexPath && shouldExpand {
             return 200

@@ -35,7 +35,7 @@ class Position: NSObject, NSCoding {
 
     var change: Double?
 
-    init(symbol: String, category: Category, price: Double, quantity: Double, descr: String? = nil) {
+    init(_ symbol: String, category: Category, price: Double, quantity: Double, descr: String? = nil) {
         self.symbol = symbol
         self.category = category
         self.price = price
@@ -58,7 +58,7 @@ class Position: NSObject, NSCoding {
         let quantity = decoder.decodeObjectForKey("quantity") as! Double
         let descr = decoder.decodeObjectForKey("descr") as! String
 
-        self.init(symbol: symbol, category: category, price: price, quantity: quantity, descr: descr)
+        self.init(symbol, category: category, price: price, quantity: quantity, descr: descr)
     }
 
     func encodeWithCoder(coder: NSCoder) {

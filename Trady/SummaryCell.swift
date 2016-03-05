@@ -27,11 +27,9 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
     }
     
     func update(account: Account) {
-        chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
 
         if let _ = app.credentials {
             value.text = account.value.currency
-            change.text = "-"
 
             var text = account.change?.currency ?? "-"
             if let changeValue = account.change {
@@ -45,8 +43,8 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
                 attributedText.setAttributes([NSFontAttributeName: UIFont.boldSystemFontOfSize(change.font.pointSize)], range: NSMakeRange(start, length))
                 change.attributedText = attributedText
             }
-            change.textColor = UIColor.blackColor()
 
+            change.textColor = UIColor.blackColor()
             if account.change < 0 {
                 change.textColor = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
             }
@@ -59,16 +57,23 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         }
         else {
             value.text = "Pull to Refresh"
-
+            change.text = "sensitive data hidden"
             change.textColor = UIColor.blackColor()
-            change.text = "Sensitive data requires identification"
 
             portfolio.hidden = true
             today.hidden = true
         }
 
         createLineChart(account)
-        createPieChart(account)
+        if let _ = app.credentials {
+            pieChartView.hidden = false
+            chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
+            createPieChart(account)
+        }
+        else {
+            pieChartView.hidden = true
+            chartScrollView.contentSize.width = lineChartView.frame.size.width
+        }
     }
 
     func createPieChart(account: Account) {
@@ -85,13 +90,19 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         pieChartView.legend.form = .Circle
         pieChartView.legend.setCustom(colors: Category.colors, labels: Category.names)
         pieChartView.userInteractionEnabled = false
-        pieChartView.hidden = app.credentials == nil ? true : false
+        pieChartView.legend.yOffset = 15
+        pieChartView.setExtraOffsets(left: 0, top: 0, right: 0, bottom: 10)
 
         var ratios: [ChartDataEntry] = []
         var names: [String] = []
         var colors: [UIColor] = []
 
-        for (index, position) in account.positions.enumerate() {
+        var positions: [Position]?
+        account.sync {
+            positions = account.positions
+        }
+
+        for (index, position) in positions!.enumerate() {
             let ratio = (position.price * position.quantity) / account.value
             names.append("")
             colors.append(position.category.color)
@@ -112,56 +123,73 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
     func createLineChart(account: Account) {
 
         var dataSets: [LineChartDataSet] = []
+        var names = [String]()
+
+        var colors = [UIColor]()
 
         if let _ = app.credentials {
-            var dataEntries: [ChartDataEntry] = []
-            for i in 0..<12 {
-                let dataEntry = ChartDataEntry(value: Double(10) + Double(rand()%10), xIndex: i)
-                dataEntries.append(dataEntry)
+            if let historical = YahooClient.historicalData["Portfolio"] {
+                var dataEntries: [ChartDataEntry] = []
+                for (i, data) in historical.enumerate() {
+                    let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
+                    dataEntries.append(dataEntry)
+                }
+                dataSets.append(LineChartDataSet(yVals: dataEntries, label: "Current Portfolio"))
+                colors.append(Category.Equity.color)
             }
-            dataSets.append(LineChartDataSet(yVals: dataEntries, label: "Portfolio"))
         }
 
-        for symbol in ["S&P 500 Index"] {
+        if let historical = YahooClient.historicalData["^GSPC"] {
             var dataEntries: [ChartDataEntry] = []
-            for i in 0..<12 {
-                let dataEntry = ChartDataEntry(value: Double(10) + Double(rand()%10), xIndex: i)
+            for (i, data) in historical.enumerate() {
+                let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
                 dataEntries.append(dataEntry)
+                names.append(data.date)
             }
-            dataSets.append(LineChartDataSet(yVals: dataEntries, label: symbol))
+            dataSets.append(LineChartDataSet(yVals: dataEntries, label: "S&P 500 Index"))
+            colors.append(Category.Fund.color)
         }
 
         for (i, set) in dataSets.enumerate() {
             set.drawCubicEnabled = true
             set.cubicIntensity = 0.1
             set.lineWidth = 2.3
-            set.circleRadius = 4
+            set.drawCirclesEnabled = false
             set.drawHorizontalHighlightIndicatorEnabled = false
             set.drawValuesEnabled = false
 
-            let color = Category.allValues[i].color
-            set.setCircleColor(color)
-            set.setColor(color)
+            set.setCircleColor(colors[i])
+            set.setColor(colors[i])
         }
+        let formatter = NSNumberFormatter()
+        formatter.numberStyle = NSNumberFormatterStyle.PercentStyle
+        formatter.locale = NSLocale.currentLocale()
 
-        let names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         let lineChartData = LineChartData(xVals: names, dataSets: dataSets)
         lineChartView.data = lineChartData
         lineChartView.legend.enabled = true
-        lineChartView.legend.yEntrySpace = 20
         lineChartView.legend.position = .BelowChartCenter
         lineChartView.legend.form = .Line
+        lineChartView.legend.yOffset = 12
         lineChartView.userInteractionEnabled = false
         lineChartView.descriptionText = ""
-        lineChartView.leftAxis.enabled = false
+        lineChartView.leftAxis.enabled = true
+        lineChartView.leftAxis.valueFormatter = formatter
+        lineChartView.leftAxis.labelFont = UIFont.systemFontOfSize(8)
+        lineChartView.leftAxis.drawTopYLabelEntryEnabled = false
+        lineChartView.leftAxis.setLabelCount(2, force: false)
+        lineChartView.leftAxis.labelPosition = .InsideChart
+        lineChartView.leftAxis.drawLimitLinesBehindDataEnabled = false
+        lineChartView.leftAxis.drawGridLinesEnabled = false
+        lineChartView.leftAxis.drawAxisLineEnabled = false
         lineChartView.rightAxis.enabled = false
         lineChartView.drawGridBackgroundEnabled = false
         lineChartView.drawBordersEnabled = false
         lineChartView.xAxis.enabled = false
-        lineChartView.xAxis.drawGridLinesEnabled = true
+        lineChartView.xAxis.drawGridLinesEnabled = false
         lineChartView.xAxis.drawAxisLineEnabled = false
         lineChartView.xAxis.labelPosition = .Bottom
-        lineChartView.setViewPortOffsets(left: 20, top: 15, right: 20, bottom: 30)
+        lineChartView.setViewPortOffsets(left: 0, top: 5, right: 0, bottom: 20)
         lineChartView.leftAxis.startAtZeroEnabled = false
     }
 

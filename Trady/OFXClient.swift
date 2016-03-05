@@ -281,7 +281,7 @@ class OFXClient {
                         symbol = symbol?.stringByReplacingOccurrencesOfString(".", withString: "-")
 
                         let position = Position(
-                            symbol: symbol ?? "UKW",
+                            symbol ?? "UKW",
                             category: category,
                             price: Double(position.valueForKeyPath("INVPOS.UNITPRICE") as! String) ?? 0.0,
                             quantity: Double(position.valueForKeyPath("INVPOS.UNITS") as! String) ?? 0
@@ -306,7 +306,7 @@ class OFXClient {
                 }
 
                 account.sync() {
-                    account.positions.append(Position(symbol: "CASH", category: Category.Cash, price: account.cash, quantity: 1))
+                    account.positions.append(Position("Cash", category: Category.Cash, price: account.cash, quantity: 1))
                     account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
                 }
 

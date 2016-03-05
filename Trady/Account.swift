@@ -14,14 +14,15 @@ class Account: NSObject, NSCoding {
     var cash: Double
     var change: Double?
 
-    var positions: [Position] = []
+    var positions: [Position]
 
     let syncQueue = dispatch_queue_create(nil, DISPATCH_QUEUE_SERIAL)
 
-    init(_ id: String, value: Double, cash: Double) {
+    init(_ id: String, value: Double, cash: Double, positions: [Position]? = nil) {
         self.id = id
         self.value = value
         self.cash = cash
+        self.positions = positions ?? []
     }
 
     required convenience init(coder decoder: NSCoder) {

@@ -17,6 +17,8 @@ class PositionCell: UITableViewCell {
     @IBOutlet weak var amount: UILabel!
     @IBOutlet weak var chart: LineChartView!
 
+    var expanded = false
+
     weak var portfolioController: PortfolioViewController?
 
     var app: AppDelegate {
@@ -29,38 +31,29 @@ class PositionCell: UITableViewCell {
         descr.text = position.descr
 
         if let changeValue = position.change {
-            change.text = "\(position.price.currency) \(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (position.price - changeValue)))%"
-
-            var colorChange = UIColor.blackColor()
-            if position.change < 0 {
-                colorChange = Category.Fund.color
-            }
-            else {
-                colorChange = Category.Cash.color
-            }
-
-            let attributedText = NSMutableAttributedString(attributedString: change.attributedText!)
-            let start = change.text!.startIndex.distanceTo(change.text!.rangeOfString(" ")!.endIndex)
-            let length = change.text!.rangeOfString(" ")!.endIndex.distanceTo(change.text!.endIndex)
-            attributedText.setAttributes([
-                NSFontAttributeName: UIFont.boldSystemFontOfSize(change.font.pointSize),
-                NSForegroundColorAttributeName: colorChange
-                ], range: NSMakeRange(start, length))
-            change.attributedText = attributedText
+            change.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (position.price - changeValue)))%"
+            change.textColor = position.change < 0 ? Category.Fund.color : Category.Cash.color
         }
         else {
             change.text = ""
+            change.textColor = UIColor.blackColor()
         }
 
         if position.category != .Fund && position.category != .Equity {
             change.text = "-"
         }
 
-        if let _ = app.credentials {
-            amount.text = (position.price * Double(position.quantity)).currency
+        if position.category == .Fund || position.category == .Equity {
+            amount.text = app.credentials == nil ? position.price.currency : "\(Int(position.quantity))x \(position.price.currency)"
         }
-        else {
-            amount.text = ""
+        else if position.category == .Cash {
+            amount.text = app.credentials == nil ? "-" : position.price.currency
+        }
+        else if position.category == .Bond {
+            amount.text = (position.quantity * position.price).currency
+        }
+        else if position.category == .Option {
+            amount.text = position.price.currency
         }
 
         var lineView = contentView.viewWithTag(42)
@@ -72,61 +65,69 @@ class PositionCell: UITableViewCell {
         }
         lineView!.backgroundColor = position.category.color
 
-        if let expandedRow = portfolioController?.expandedIndexPath?.row {
-            if account.positions[expandedRow] == position {
-                createChart(position)
-            }
-        }
+        chart.hidden = !expanded
+        createChart(position)
     }
 
     func createChart(position: Position) {
+        var names: [String] = []
         var dataEntries: [ChartDataEntry] = []
-        for i in 0..<12 {
-            let dataEntry = ChartDataEntry(value: Double(20) + Double(rand()%10), xIndex: i)
-            dataEntries.append(dataEntry)
+
+        if let historical = YahooClient.historicalData[position.symbol] {
+            for (i, data) in historical.enumerate() {
+                let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
+                dataEntries.append(dataEntry)
+                names.append(data.date)
+            }
         }
+        else {
+            dataEntries.append(ChartDataEntry(value: position.price, xIndex: 0))
+            dataEntries.append(ChartDataEntry(value: position.price, xIndex: 1))
+            names = ["", "Today"]
+        }
+
+        names[0] = ""
+        names[names.count-2] = ""
 
         let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: position.symbol)
         lineChartDataSet.drawCubicEnabled = true
         lineChartDataSet.cubicIntensity = 0.1
         lineChartDataSet.lineWidth = 2.3
-        lineChartDataSet.circleRadius = 4
-        lineChartDataSet.fillColor = UIColor.blueColor()
-        lineChartDataSet.fillAlpha = 1
         lineChartDataSet.drawHorizontalHighlightIndicatorEnabled = false
         lineChartDataSet.setCircleColor(position.category.color)
         lineChartDataSet.setColor(position.category.color)
+        lineChartDataSet.drawCirclesEnabled = false
         lineChartDataSet.drawValuesEnabled = false
         lineChartDataSet.valueFont = UIFont.systemFontOfSize(8)
 
         let formatter = NSNumberFormatter()
-        formatter.numberStyle = NSNumberFormatterStyle.CurrencyStyle
+        formatter.numberStyle = NSNumberFormatterStyle.PercentStyle
         formatter.locale = NSLocale.currentLocale()
         lineChartDataSet.valueFormatter = formatter
 
-        let names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         let lineChartData = LineChartData(xVals: names, dataSet: lineChartDataSet)
         chart.data = lineChartData
         chart.legend.enabled = false
         chart.userInteractionEnabled = false
         chart.descriptionText = ""
-        chart.leftAxis.enabled = false
         chart.rightAxis.enabled = false
-        chart.rightAxis.valueFormatter = formatter
-        chart.rightAxis.labelFont = UIFont.systemFontOfSize(9)
-        chart.rightAxis.labelTextColor = position.category.color
-        chart.rightAxis.drawTopYLabelEntryEnabled = false
-        chart.rightAxis.setLabelCount(6, force: false)
-        chart.rightAxis.labelPosition = .InsideChart
-        chart.rightAxis.drawLimitLinesBehindDataEnabled = false
-        chart.rightAxis.drawGridLinesEnabled = false
-        chart.rightAxis.drawAxisLineEnabled = false
+        chart.leftAxis.enabled = true
+        chart.leftAxis.valueFormatter = formatter
+        chart.leftAxis.labelFont = UIFont.boldSystemFontOfSize(9)
+        chart.leftAxis.labelTextColor = position.category.color
+        chart.leftAxis.drawTopYLabelEntryEnabled = false
+        chart.leftAxis.setLabelCount(2, force: false)
+        chart.leftAxis.labelPosition = .InsideChart
+        chart.leftAxis.drawLimitLinesBehindDataEnabled = false
+        chart.leftAxis.drawGridLinesEnabled = false
+        chart.leftAxis.drawAxisLineEnabled = false
         chart.drawGridBackgroundEnabled = false
         chart.drawBordersEnabled = false
         chart.xAxis.drawGridLinesEnabled = false
         chart.xAxis.drawAxisLineEnabled = false
         chart.xAxis.labelPosition = .Bottom
-        chart.setViewPortOffsets(left: 20, top: 0, right: 20, bottom: 20)
+        chart.xAxis.labelFont = UIFont.systemFontOfSize(9)
+        chart.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 20)
         chart.leftAxis.startAtZeroEnabled = false
     }
 }

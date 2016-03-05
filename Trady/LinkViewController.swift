@@ -10,9 +10,10 @@ import UIKit
 
 class LinkViewController: UIViewController, UITextFieldDelegate {
 
+    @IBOutlet weak var text: UITextView!
     @IBOutlet weak var username: UITextField!
     @IBOutlet weak var password: UITextField!
-    @IBOutlet weak var link: UIButton!
+    @IBOutlet weak var cancelButton: UIButton!
 
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
@@ -25,10 +26,20 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
         password.delegate = self
 
         username.becomeFirstResponder()
+
+        cancelButton.hidden = app.credentials == nil
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
+    }
+
+    @IBAction func cancel(sender: AnyObject) {
+        self.dismissViewControllerAnimated(true) {}
+    }
+
+    @IBAction func done(sender: AnyObject) {
+        linkAccount(sender)
     }
 
     func setWaitState(isWaiting: Bool = true) {
@@ -40,6 +51,17 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
     }
 
     func linkAccount(sender: AnyObject) {
+        if username.text!.isEmpty || password.text!.isEmpty {
+            dispatch_async(dispatch_get_main_queue()) {
+                self.setWaitState(false)
+                let alertController = UIAlertController(title: "Login failed", message: "Please check your credentials and try again.", preferredStyle: .Alert)
+                let OKAction = UIAlertAction(title: "OK", style: .Default) { (action) in }
+                alertController.addAction(OKAction)
+                self.presentViewController(alertController, animated: true) {}
+            }
+            return
+        }
+
         setWaitState()
 
         app.ofx.login(username.text!, password.text!) { credentials in

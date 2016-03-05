@@ -343,7 +343,9 @@ class ETradeClient {
                     basis: 0,
                     amount: 1)
 
-                account.positions.append(position)
+                account.sync {
+                    account.positions.append(position)
+                }
             }
         }
         catch {}
