@@ -114,6 +114,7 @@ class PortfolioViewController: UITableViewController {
         tableView.reloadData()
         backgrounded = true
         dispatch_suspend(timer!)
+        account.save()
     }
 
     func applicationDidBecomeActive(sender: AnyObject) {
@@ -183,7 +184,6 @@ class PortfolioViewController: UITableViewController {
             dispatch_async(dispatch_get_main_queue()) {
                 self.tableView.reloadData()
             }
-            self.account.save()
         }
     }
 
@@ -253,7 +253,7 @@ extension PortfolioViewController {
 
         let shouldExpand = category == Category.Equity || category == Category.Fund
         if indexPath == expandedIndexPath && shouldExpand {
-            return 200
+            return 230
         }
 
         return 55

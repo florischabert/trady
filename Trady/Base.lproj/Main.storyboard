@@ -66,7 +66,7 @@
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Today" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="sKR-Vd-EuT">
-                                            <rect key="frame" x="61" y="42" width="27" height="12"/>
+                                            <rect key="frame" x="61" y="43" width="27" height="12"/>
                                             <constraints>
                                                 <constraint firstAttribute="width" constant="27" id="cho-FB-V2Y"/>
                                                 <constraint firstAttribute="height" constant="12" id="uvg-Jz-8CE"/>
@@ -75,7 +75,7 @@
                                             <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                             <nil key="highlightedColor"/>
                                         </label>
-                                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YDV-VS-Dke">
+                                        <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YDV-VS-Dke">
                                             <rect key="frame" x="0.0" y="65" width="600" height="240"/>
                                             <subviews>
                                                 <view tag="23" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j8p-9r-lqH" customClass="PieChartView" customModule="Charts">
@@ -116,9 +116,9 @@
                                         <constraint firstItem="i1I-f5-LxR" firstAttribute="top" secondItem="GKh-Go-fMD" secondAttribute="bottom" constant="1" id="ZnV-iT-VVF"/>
                                         <constraint firstItem="sKR-Vd-EuT" firstAttribute="trailing" secondItem="1xN-9t-nkc" secondAttribute="trailing" id="hrh-Oo-wU8"/>
                                         <constraint firstItem="i1I-f5-LxR" firstAttribute="leading" secondItem="GKh-Go-fMD" secondAttribute="leading" id="hvX-5D-iyB"/>
-                                        <constraint firstItem="i1I-f5-LxR" firstAttribute="centerY" secondItem="sKR-Vd-EuT" secondAttribute="centerY" constant="1.5" id="rTi-XS-dad"/>
+                                        <constraint firstItem="i1I-f5-LxR" firstAttribute="centerY" secondItem="sKR-Vd-EuT" secondAttribute="centerY" constant="0.5" id="rTi-XS-dad"/>
                                         <constraint firstItem="GKh-Go-fMD" firstAttribute="trailing" secondItem="i1I-f5-LxR" secondAttribute="trailing" id="uDw-uE-LPz"/>
-                                        <constraint firstItem="sKR-Vd-EuT" firstAttribute="top" secondItem="GKh-Go-fMD" secondAttribute="bottom" constant="1" id="xi6-ei-sDJ"/>
+                                        <constraint firstItem="sKR-Vd-EuT" firstAttribute="top" secondItem="GKh-Go-fMD" secondAttribute="bottom" constant="2" id="xi6-ei-sDJ"/>
                                     </constraints>
                                 </tableViewCellContentView>
                                 <inset key="separatorInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
@@ -132,11 +132,11 @@
                                     <outlet property="value" destination="GKh-Go-fMD" id="Blm-TS-nlk"/>
                                 </connections>
                             </tableViewCell>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="PositionCell" rowHeight="200" id="Q5N-oX-fLJ" customClass="PositionCell" customModule="Trady" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="333" width="600" height="200"/>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="PositionCell" rowHeight="230" id="Q5N-oX-fLJ" customClass="PositionCell" customModule="Trady" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="333" width="600" height="230"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Q5N-oX-fLJ" id="arG-Gm-246">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="199.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="229.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Change" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4q0-zj-B6u">
@@ -168,10 +168,10 @@
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="GXx-RS-IvQ" customClass="LineChartView" customModule="Charts">
-                                            <rect key="frame" x="0.0" y="55" width="600" height="144"/>
+                                            <rect key="frame" x="0.0" y="65" width="600" height="165"/>
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <constraints>
-                                                <constraint firstAttribute="height" constant="144" id="u7w-Yj-61P"/>
+                                                <constraint firstAttribute="height" constant="165" id="u7w-Yj-61P"/>
                                             </constraints>
                                         </view>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Description" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsLetterSpacingToFitWidth="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7lH-ix-BQo">
@@ -183,10 +183,21 @@
                                             <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                             <nil key="highlightedColor"/>
                                         </label>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Details" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BJX-Yv-bOu">
+                                            <rect key="frame" x="14" y="49" width="576" height="21"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="21" id="ppv-1S-vV4"/>
+                                            </constraints>
+                                            <fontDescription key="fontDescription" type="system" pointSize="10"/>
+                                            <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
                                     </subviews>
                                     <constraints>
-                                        <constraint firstItem="GXx-RS-IvQ" firstAttribute="top" secondItem="7lH-ix-BQo" secondAttribute="bottom" constant="7" id="KHz-33-baK"/>
+                                        <constraint firstItem="BJX-Yv-bOu" firstAttribute="trailing" secondItem="Qhq-Vo-VVC" secondAttribute="trailing" id="2Ez-UL-E7y"/>
+                                        <constraint firstItem="GXx-RS-IvQ" firstAttribute="top" secondItem="7lH-ix-BQo" secondAttribute="bottom" constant="17" id="KHz-33-baK"/>
                                         <constraint firstItem="7lH-ix-BQo" firstAttribute="leading" secondItem="q5B-oh-nsc" secondAttribute="leading" id="Khg-Tp-XWl"/>
+                                        <constraint firstItem="BJX-Yv-bOu" firstAttribute="top" secondItem="7lH-ix-BQo" secondAttribute="bottom" constant="1" id="Rq4-L1-kC0"/>
                                         <constraint firstItem="q5B-oh-nsc" firstAttribute="top" secondItem="arG-Gm-246" secondAttribute="topMargin" constant="-1" id="UvI-lw-aNj"/>
                                         <constraint firstItem="q5B-oh-nsc" firstAttribute="bottom" secondItem="4q0-zj-B6u" secondAttribute="bottom" id="WZG-h5-Uqq"/>
                                         <constraint firstItem="GXx-RS-IvQ" firstAttribute="leading" secondItem="arG-Gm-246" secondAttribute="leading" id="XxP-o9-fZG"/>
@@ -198,9 +209,10 @@
                                         <constraint firstAttribute="trailing" secondItem="GXx-RS-IvQ" secondAttribute="trailing" id="n98-6d-S0l"/>
                                         <constraint firstItem="7lH-ix-BQo" firstAttribute="baseline" secondItem="Qhq-Vo-VVC" secondAttribute="baseline" id="q0l-tc-rcO"/>
                                         <constraint firstItem="4q0-zj-B6u" firstAttribute="top" secondItem="q5B-oh-nsc" secondAttribute="top" id="rqe-sa-pgq"/>
-                                        <constraint firstItem="GXx-RS-IvQ" firstAttribute="top" secondItem="q5B-oh-nsc" secondAttribute="bottom" constant="27" id="uKJ-pL-WvC"/>
+                                        <constraint firstItem="GXx-RS-IvQ" firstAttribute="top" secondItem="q5B-oh-nsc" secondAttribute="bottom" constant="37" id="uKJ-pL-WvC"/>
                                         <constraint firstItem="GXx-RS-IvQ" firstAttribute="width" secondItem="arG-Gm-246" secondAttribute="width" id="ubm-3x-aku"/>
                                         <constraint firstItem="7lH-ix-BQo" firstAttribute="leading" secondItem="arG-Gm-246" secondAttribute="leadingMargin" constant="6" id="w89-Ga-Pzv"/>
+                                        <constraint firstItem="BJX-Yv-bOu" firstAttribute="leading" secondItem="7lH-ix-BQo" secondAttribute="leading" id="wE9-M1-9C6"/>
                                     </constraints>
                                 </tableViewCellContentView>
                                 <inset key="separatorInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
@@ -209,6 +221,7 @@
                                     <outlet property="change" destination="4q0-zj-B6u" id="IB7-w4-oUL"/>
                                     <outlet property="chart" destination="GXx-RS-IvQ" id="siS-CT-3r2"/>
                                     <outlet property="descr" destination="7lH-ix-BQo" id="brc-Pe-CvK"/>
+                                    <outlet property="details" destination="BJX-Yv-bOu" id="kvQ-gR-A02"/>
                                     <outlet property="symbol" destination="q5B-oh-nsc" id="1tE-bs-b4B"/>
                                 </connections>
                             </tableViewCell>

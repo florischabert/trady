@@ -69,6 +69,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             pieChartView.hidden = false
             chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
             createPieChart(account)
+            chartScrollView.flashScrollIndicators()
         }
         else {
             pieChartView.hidden = true

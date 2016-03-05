@@ -16,7 +16,8 @@ class PositionCell: UITableViewCell {
     @IBOutlet weak var change: UILabel!
     @IBOutlet weak var amount: UILabel!
     @IBOutlet weak var chart: LineChartView!
-
+    @IBOutlet weak var details: UILabel!
+    
     var expanded = false
 
     weak var portfolioController: PortfolioViewController?
@@ -43,8 +44,16 @@ class PositionCell: UITableViewCell {
             change.text = "-"
         }
 
+        details.text = ""
         if position.category == .Fund || position.category == .Equity {
             amount.text = app.credentials == nil ? position.price.currency : "\(Int(position.quantity))x \(position.price.currency)"
+
+            if let cap = position.cap {
+                details!.text! += "Capitalization: \(cap)"
+            }
+            if let pe = position.pe {
+                details!.text! += "  |  P/E: \(pe)"
+            }
         }
         else if position.category == .Cash {
             amount.text = app.credentials == nil ? "-" : position.price.currency

@@ -29,37 +29,20 @@ class YahooClient {
 
     static var historicalData = [String:[DataPoint]]()
 
-    static let yahooUrl = "https://download.finance.yahoo.com/d/quotes.csv"
-
     static func updateAccount(account: Account, completion: () -> Void = {}) {
-
-        var count = 0
-        account.sync {
-            count = account.positions.count
-        }
-        if count == 0 {
-            return
-        }
-
-        var urlString = yahooUrl
-
-        urlString += "?s="
-
         var positions: [Position]?
         account.sync {
             positions = account.positions
         }
+        let stocksToUpdate = positions!.filter { $0.category == Category.Equity || $0.category == Category.Fund }.map{$0.symbol}
+        let stocks = stocksToUpdate.map{"\"\($0)\""}.joinWithSeparator(",")
 
-        for position in positions! {
-            if [Category.Equity, Category.Fund].contains(position.category) {
-                urlString += "\(position.symbol),"
-            }
-        }
-        urlString = urlString[urlString.startIndex..<urlString.endIndex.advancedBy(-1)]
+        let baseURL = "https://query.yahooapis.com/v1/public/yql?q="
+        let query = "select Symbol,Name,Change,MarketCapitalization,LastTradePriceOnly,PERatio from yahoo.finance.quotes where symbol in (\(stocks))"
+        let postfix = "&env=store://datatables.org/alltableswithkeys&format=json&callback="
+        let urlString = (baseURL + query + postfix).stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())
 
-        urlString += "&f=sl1c1n" // SYMBOL,PRICE,CHANGE,DESCR
-
-        let urlRequest = NSURLRequest(URL: NSURL(string: urlString)!)
+        let urlRequest = NSURLRequest(URL: NSURL(string: urlString!)!)
         let task = NSURLSession.sharedSession().dataTaskWithRequest(urlRequest) {
             data, response, error in
 
@@ -74,25 +57,37 @@ class YahooClient {
 
             }
 
-            if let responseString = NSString(data: data!, encoding: NSUTF8StringEncoding) as? String {
-                responseString.enumerateLines() { line, stop in
-                    let line = line.stringByReplacingOccurrencesOfString("\"", withString: "")
-                    let items = line.characters.split(",").map{String($0)}
+            do {
+                if let json = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments) as? NSDictionary {
 
-                    account.sync() {
-                        for position in account.positions {
-                            if [Category.Equity, Category.Fund].contains(position.category) {
-                                if items[0] == position.symbol {
-                                    position.price = Double(items[1]) ?? position.price
-                                    position.change = Double(items[2])
-                                    position.descr = items[3..<items.count].joinWithSeparator(",") ?? "-"
+                    if let quotes = json.valueForKeyPath("query.results.quote") as? NSArray {
+
+                        for quote in quotes {
+
+                            if let symbol = quote["Symbol"] as? String,
+                                priceString = quote["LastTradePriceOnly"] as? String,
+                                price = Double(priceString) {
+
+                                account.sync() {
+                                    for position in account.positions {
+                                        if [Category.Equity, Category.Fund].contains(position.category) {
+                                            if symbol == position.symbol {
+                                                position.price = price
+                                                position.change = Double((quote["Change"] as? String) ?? "-")
+                                                position.descr = (quote["Name"] as? String) ?? "-"
+                                                position.cap = quote["MarketCapitalization"] as? String
+                                                position.pe = Double((quote["PERatio"] as? String) ?? "-")
+                                            }
+                                        }
+                                    }
+                                    account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
                                 }
                             }
                         }
-                        account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
                     }
                 }
             }
+            catch {}
 
             var change: Double = 0
             var value: Double = 0
@@ -122,7 +117,7 @@ class YahooClient {
         let dateFormatter = NSDateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
 
-        var stocksToUpdate = ["^DJI", "^IXIC", "^GSPC"]
+        var stocksToUpdate = ["^GSPC"]
 
         var positions: [Position]?
         account.sync {
@@ -161,9 +156,10 @@ class YahooClient {
 
                         for quote in quotes {
                             if let symbol = quote["Symbol"] as? String,
-                            date = quote["Date"] as? String,
-                            close = quote["Close"] as? String,
-                            value = Double(close) {
+                                date = quote["Date"] as? String,
+                                close = quote["Close"] as? String,
+                                value = Double(close) {
+
                                 let symbol = symbol.stringByRemovingPercentEncoding!
                                 let niceDateFormatter = NSDateFormatter()
                                 niceDateFormatter.dateFormat = "MMM d"
@@ -180,9 +176,9 @@ class YahooClient {
                         }
 
                         var portfolioData = [DataPoint]()
-                        for i in 0..<historicalData["^IXIC"]!.count {
+                        for i in 0..<historicalData["^GSPC"]!.count {
                             var value: Double = 0
-                            let date = historicalData["^IXIC"]!.first!.date
+                            let date = historicalData["^GSPC"]!.first!.date
 
                             for (key, var data) in historicalData {
                                 var units: Double = 0

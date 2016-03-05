@@ -34,6 +34,8 @@ class Position: NSObject, NSCoding {
     var quantity: Double
 
     var change: Double?
+    var cap: String?
+    var pe: Double?
 
     init(_ symbol: String, category: Category, price: Double, quantity: Double, descr: String? = nil) {
         self.symbol = symbol
