@@ -185,7 +185,7 @@ extension PortfolioViewController {
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 
-        if section == 0 {
+        if section <= 1 {
             return 1
         }
 
@@ -209,19 +209,23 @@ extension PortfolioViewController {
         let cell = tableView.dequeueReusableCellWithIdentifier("PositionCell")! as! PositionCell
         cell.portfolioController = self
         cell.expanded = indexPath == expandedIndexPath
-        cell.update(account, index: indexPath.row)
+        cell.update(account, index: (indexPath.section == 1) ? -1 : indexPath.row)
         return cell
     }
 
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
 
-        return 2
+        return 3
     }
 
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
         if indexPath.section == 0 {
             return 305
+        }
+
+        if indexPath.section == 1 {
+            return 35
         }
 
         var category: Position.Category?
@@ -239,7 +243,7 @@ extension PortfolioViewController {
 
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 
-        if indexPath.section == 0 {
+        if indexPath.section <= 1 {
             return
         }
 

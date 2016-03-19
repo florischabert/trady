@@ -86,7 +86,7 @@ class YahooClient {
                                     quote.pe = Double((quoteData["PERatio"] as? String) ?? "-")
 
                                     self.quotes[symbol] = quote
-`                            }
+                            }
                         }
                     }
                 }

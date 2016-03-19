@@ -28,6 +28,28 @@ class PositionCell: UITableViewCell {
 
     func update(account: Account, index: Int) {
 
+        if index == -1 {
+            symbol.text = "Cash"
+            change.text = account.cash.currency
+            change.font = UIFont.systemFontOfSize(12)
+            change.textColor = UIColor.blackColor()
+            descr.text = ""
+            amount.text = ""
+
+            chart.hidden = true
+
+            var lineView = contentView.viewWithTag(42)
+            if lineView == nil {
+                lineView = UIView()
+                lineView!.frame = CGRect(x: 0, y: 0, width: 5, height: 55)
+                lineView!.tag = 42
+                contentView.addSubview(lineView!)
+            }
+            lineView!.backgroundColor = PortfolioViewController.green
+
+            return
+        }
+
         let position = account.positions[index]
 
         symbol.text = position.symbol

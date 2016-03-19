@@ -98,11 +98,16 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             positions = account.positions
         }
 
+        let ratio = account.cash / account.value
+        names.append(ratio > 0.1 ? "Cash" : "")
+        colors.append(PortfolioViewController.green)
+        ratios.append(ChartDataEntry(value: ratio, xIndex: 0))
+
         for (index, position) in positions!.enumerate() {
             let ratio = (position.price * position.quantity) / account.value
             names.append(ratio > 0.1 ? position.symbol : "")
             colors.append(PortfolioViewController.colors[index % PortfolioViewController.colors.count])
-            ratios.append(ChartDataEntry(value: ratio, xIndex: index))
+            ratios.append(ChartDataEntry(value: ratio, xIndex: index+1))
         }
 
         let pieChartDataSet = PieChartDataSet(yVals: ratios, label: "")
