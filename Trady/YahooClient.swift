@@ -29,12 +29,22 @@ class YahooClient {
 
     static var historicalData = [String:[DataPoint]]()
 
+    class Quote {
+        var descr: String = ""
+        var price: Double = 0
+        var change: Double?
+        var pe: Double?
+        var cap: String?
+    }
+
+    static var quotes = [String: Quote]()
+
     static func updateAccount(account: Account, completion: () -> Void = {}) {
         var positions: [Position]?
         account.sync {
             positions = account.positions
         }
-        let stocksToUpdate = positions!.filter { $0.category == Category.Equity || $0.category == Category.Fund }.map{$0.symbol}
+        let stocksToUpdate = positions!.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
         let stocks = stocksToUpdate.map{"\"\($0)\""}.joinWithSeparator(",")
 
         let baseURL = "https://query.yahooapis.com/v1/public/yql?q="
@@ -60,29 +70,23 @@ class YahooClient {
             do {
                 if let json = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments) as? NSDictionary {
 
-                    if let quotes = json.valueForKeyPath("query.results.quote") as? NSArray {
+                    if let quotesData = json.valueForKeyPath("query.results.quote") as? NSArray {
 
-                        for quote in quotes {
+                        for quoteData in quotesData {
 
-                            if let symbol = quote["Symbol"] as? String,
-                                priceString = quote["LastTradePriceOnly"] as? String,
+                            if let symbol = quoteData["Symbol"] as? String,
+                                priceString = quoteData["LastTradePriceOnly"] as? String,
                                 price = Double(priceString) {
 
-                                account.sync() {
-                                    for position in account.positions {
-                                        if [Category.Equity, Category.Fund].contains(position.category) {
-                                            if symbol == position.symbol {
-                                                position.price = price
-                                                position.change = Double((quote["Change"] as? String) ?? "-")
-                                                position.descr = (quote["Name"] as? String) ?? "-"
-                                                position.cap = quote["MarketCapitalization"] as? String
-                                                position.pe = Double((quote["PERatio"] as? String) ?? "-")
-                                            }
-                                        }
-                                    }
-                                    account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
-                                }
-                            }
+                                    let quote = Quote()
+                                    quote.price = price
+                                    quote.change = Double((quoteData["Change"] as? String) ?? "")
+                                    quote.descr = (quoteData["Name"] as? String) ?? "-"
+                                    quote.cap = quoteData["MarketCapitalization"] as? String
+                                    quote.pe = Double((quoteData["PERatio"] as? String) ?? "-")
+
+                                    self.quotes[symbol] = quote
+`                            }
                         }
                     }
                 }
@@ -93,11 +97,11 @@ class YahooClient {
             var value: Double = 0
             account.sync() {
                 for position in account.positions {
-                    change += (position.change ?? 0) * position.quantity
+                    change += (self.quotes[position.symbol]?.change ?? 0) * position.quantity
                     value += (position.price ?? 0) * position.quantity
                 }
                 account.change = change
-                account.value = value
+                account.value = value + account.cash
             }
 
             completion()
@@ -123,7 +127,7 @@ class YahooClient {
         account.sync {
             positions = account.positions
         }
-        stocksToUpdate += positions!.filter { $0.category == Category.Equity || $0.category == Category.Fund }.map{$0.symbol}
+        stocksToUpdate += positions!.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
 
         let stocks = stocksToUpdate.map{"\"\($0)\""}.joinWithSeparator(",")
         let startDate = dateFormatter.stringFromDate(NSDate().dateByAddingTimeInterval(-howManyDays*24*60*60))

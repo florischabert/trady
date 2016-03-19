@@ -29,7 +29,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
     func update(account: Account) {
 
         if let _ = app.credentials {
-            value.text = account.value.currency
+            value.text = TARGET_OS_SIMULATOR == 1 ? "$000,000.00" : account.value.currency
 
             var text = account.change?.currency ?? "-"
             if let changeValue = account.change {
@@ -79,20 +79,15 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
 
     func createPieChart(account: Account) {
         pieChartView.delegate = self
-        pieChartView.legend.enabled = true
+        pieChartView.legend.enabled = false
         pieChartView.descriptionText = ""
         pieChartView.usePercentValuesEnabled = true
         pieChartView.drawHoleEnabled = true
-        pieChartView.holeTransparent = true
-        pieChartView.transparentCircleRadiusPercent = 0.47
-        pieChartView.holeRadiusPercent = 0.45
+        pieChartView.transparentCircleRadiusPercent = 0.41
+        pieChartView.holeRadiusPercent = 0.38
         pieChartView.rotationEnabled = false
-        pieChartView.legend.position = .BelowChartCenter
-        pieChartView.legend.form = .Circle
-        pieChartView.legend.setCustom(colors: Category.colors, labels: Category.names)
         pieChartView.userInteractionEnabled = false
-        pieChartView.legend.yOffset = 15
-        pieChartView.setExtraOffsets(left: 0, top: 0, right: 0, bottom: 10)
+        pieChartView.setExtraOffsets(left: 0, top: 20, right: 0, bottom: 20)
 
         var ratios: [ChartDataEntry] = []
         var names: [String] = []
@@ -105,8 +100,8 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
 
         for (index, position) in positions!.enumerate() {
             let ratio = (position.price * position.quantity) / account.value
-            names.append("")
-            colors.append(position.category.color)
+            names.append(ratio > 0.1 ? position.symbol : "")
+            colors.append(PortfolioViewController.colors[index % PortfolioViewController.colors.count])
             ratios.append(ChartDataEntry(value: ratio, xIndex: index))
         }
 
@@ -136,7 +131,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
                     dataEntries.append(dataEntry)
                 }
                 dataSets.append(LineChartDataSet(yVals: dataEntries, label: "Current Portfolio"))
-                colors.append(Category.Equity.color)
+                colors.append(PortfolioViewController.blue)
             }
         }
 
@@ -148,7 +143,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
                 names.append(data.date)
             }
             dataSets.append(LineChartDataSet(yVals: dataEntries, label: "S&P 500 Index"))
-            colors.append(Category.Fund.color)
+            colors.append(PortfolioViewController.red)
         }
 
         for (i, set) in dataSets.enumerate() {
@@ -183,6 +178,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         lineChartView.leftAxis.drawLimitLinesBehindDataEnabled = false
         lineChartView.leftAxis.drawGridLinesEnabled = false
         lineChartView.leftAxis.drawAxisLineEnabled = false
+        lineChartView.leftAxis.drawZeroLineEnabled = false
         lineChartView.rightAxis.enabled = false
         lineChartView.drawGridBackgroundEnabled = false
         lineChartView.drawBordersEnabled = false

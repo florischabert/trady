@@ -11,12 +11,19 @@ import Charts
 
 class PortfolioViewController: UITableViewController {
 
+    static let blue = UIColor(red: CGFloat(0.0/255), green: CGFloat(178.0/255), blue: CGFloat(220.0/255), alpha: 1)
+    static let red = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
+    static let brown = UIColor(red: CGFloat(150.0/255), green: CGFloat(140.0/255), blue: CGFloat(138.0/255), alpha: 1)
+    static let yellow = UIColor(red: CGFloat(255.0/255), green: CGFloat(148.0/255), blue: CGFloat(0.0/255), alpha: 1)
+    static let green = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
+    static let colors = [blue, red, brown, yellow, green]
+
     var account = Account("", value: 0, cash: 0, positions: [
-        Position("SPY", category: Category.Equity, price: 100, quantity: 1),
-        Position("QQQ", category: Category.Equity, price: 100, quantity: 1),
-        Position("AAPL", category: Category.Equity, price: 100, quantity: 1),
-        Position("GOOG", category: Category.Equity, price: 100, quantity: 1),
-        Position("TSLA", category: Category.Equity, price: 100, quantity: 1),
+        Position("SPY", category: .Equity, price: 100, quantity: 1),
+        Position("QQQ", category: .Equity, price: 100, quantity: 1),
+        Position("AAPL", category: .Equity, price: 100, quantity: 1),
+        Position("GOOG", category: .Equity, price: 100, quantity: 1),
+        Position("TSLA", category: .Equity, price: 100, quantity: 1),
     ])
 
     var backgrounded = false
@@ -46,25 +53,6 @@ class PortfolioViewController: UITableViewController {
         tableView.contentInset = UIEdgeInsetsMake(-1, 0, 0, 0);
     }
 
-    func rotateTitle(duration: Double = 1) {
-        if view.layer.animationForKey("io.trady.refreshanimation") == nil {
-            let rotationAnimation = CABasicAnimation(keyPath: "transform.rotation")
-
-            rotationAnimation.fromValue = 0.0
-            rotationAnimation.toValue = Float(M_PI * 2.0)
-            rotationAnimation.duration = duration
-            rotationAnimation.repeatCount = Float.infinity
-
-            navigationItem.titleView?.layer.addAnimation(rotationAnimation, forKey: "io.trady.refreshanimation")
-        }
-    }
-
-    func stopRotatingTitle() {
-        if navigationItem.titleView?.layer.animationForKey("io.trady.refreshanimation") != nil {
-            navigationItem.titleView?.layer.removeAnimationForKey("io.trady.refreshanimation")
-        }
-    }
-
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -76,8 +64,6 @@ class PortfolioViewController: UITableViewController {
         button.addTarget(self, action: "link:", forControlEvents: .TouchUpInside)
         buttonView.addSubview(button)
         navigationItem.titleView = buttonView
-
-//        rotateTitle()
 
 //        navigationController?.hidesBarsOnSwipe = true
 
@@ -223,12 +209,7 @@ extension PortfolioViewController {
         let cell = tableView.dequeueReusableCellWithIdentifier("PositionCell")! as! PositionCell
         cell.portfolioController = self
         cell.expanded = indexPath == expandedIndexPath
-
-        var position: Position?
-        account.sync {
-            position = self.account.positions[indexPath.row]
-        }
-        cell.update(account, position: position!)
+        cell.update(account, index: indexPath.row)
         return cell
     }
 
@@ -243,12 +224,12 @@ extension PortfolioViewController {
             return 305
         }
 
-        var category: Category?
+        var category: Position.Category?
         account.sync {
             category = self.account.positions[indexPath.row].category
         }
 
-        let shouldExpand = category == Category.Equity || category == Category.Fund
+        let shouldExpand = category == .Equity || category == .Fund
         if indexPath == expandedIndexPath && shouldExpand {
             return 230
         }

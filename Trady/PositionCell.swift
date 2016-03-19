@@ -26,14 +26,16 @@ class PositionCell: UITableViewCell {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
 
-    func update(account: Account, position: Position) {
+    func update(account: Account, index: Int) {
+
+        let position = account.positions[index]
 
         symbol.text = position.symbol
-        descr.text = position.descr
+        descr.text = YahooClient.quotes[position.symbol]?.descr ?? position.descr
 
-        if let changeValue = position.change {
-            change.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (position.price - changeValue)))%"
-            change.textColor = position.change < 0 ? Category.Fund.color : Category.Cash.color
+        if let changeValue = YahooClient.quotes[position.symbol]?.change {
+            change.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (YahooClient.quotes[position.symbol]!.price - changeValue)))%"
+            change.textColor = changeValue < 0 ? PortfolioViewController.red : PortfolioViewController.green
         }
         else {
             change.text = ""
@@ -46,17 +48,15 @@ class PositionCell: UITableViewCell {
 
         details.text = ""
         if position.category == .Fund || position.category == .Equity {
-            amount.text = app.credentials == nil ? position.price.currency : "\(Int(position.quantity))x \(position.price.currency)"
+            let price = YahooClient.quotes[position.symbol]?.price ?? position.price
+            amount.text = app.credentials == nil ? price.currency : "\(Int(position.quantity))x \(price.currency)"
 
-            if let cap = position.cap {
-                details!.text! += "Capitalization: \(cap)"
+            if let cap = YahooClient.quotes[position.symbol]?.cap {
+                details!.text! += "Market Capitalization: \(cap)"
             }
-            if let pe = position.pe {
+            if let pe = YahooClient.quotes[position.symbol]?.pe {
                 details!.text! += "  |  P/E: \(pe)"
             }
-        }
-        else if position.category == .Cash {
-            amount.text = app.credentials == nil ? "-" : position.price.currency
         }
         else if position.category == .Bond {
             amount.text = (position.quantity * position.price).currency
@@ -72,13 +72,13 @@ class PositionCell: UITableViewCell {
             lineView!.tag = 42
             contentView.addSubview(lineView!)
         }
-        lineView!.backgroundColor = position.category.color
+        lineView!.backgroundColor = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
 
         chart.hidden = !expanded
-        createChart(position)
+        createChart(position, index: index)
     }
 
-    func createChart(position: Position) {
+    func createChart(position: Position, index: Int) {
         var names: [String] = []
         var dataEntries: [ChartDataEntry] = []
 
@@ -103,8 +103,8 @@ class PositionCell: UITableViewCell {
         lineChartDataSet.cubicIntensity = 0.1
         lineChartDataSet.lineWidth = 2.3
         lineChartDataSet.drawHorizontalHighlightIndicatorEnabled = false
-        lineChartDataSet.setCircleColor(position.category.color)
-        lineChartDataSet.setColor(position.category.color)
+        lineChartDataSet.setCircleColor(PortfolioViewController.colors[index % PortfolioViewController.colors.count])
+        lineChartDataSet.setColor(PortfolioViewController.colors[index % PortfolioViewController.colors.count])
         lineChartDataSet.drawCirclesEnabled = false
         lineChartDataSet.drawValuesEnabled = false
         lineChartDataSet.valueFont = UIFont.systemFontOfSize(8)
@@ -122,14 +122,14 @@ class PositionCell: UITableViewCell {
         chart.rightAxis.enabled = false
         chart.leftAxis.enabled = true
         chart.leftAxis.valueFormatter = formatter
-        chart.leftAxis.labelFont = UIFont.boldSystemFontOfSize(9)
-        chart.leftAxis.labelTextColor = position.category.color
+        chart.leftAxis.labelFont = UIFont.systemFontOfSize(8)
         chart.leftAxis.drawTopYLabelEntryEnabled = false
         chart.leftAxis.setLabelCount(2, force: false)
         chart.leftAxis.labelPosition = .InsideChart
         chart.leftAxis.drawLimitLinesBehindDataEnabled = false
         chart.leftAxis.drawGridLinesEnabled = false
         chart.leftAxis.drawAxisLineEnabled = false
+        chart.leftAxis.drawZeroLineEnabled = false
         chart.drawGridBackgroundEnabled = false
         chart.drawBordersEnabled = false
         chart.xAxis.drawGridLinesEnabled = false

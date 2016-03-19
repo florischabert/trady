@@ -268,13 +268,13 @@ class OFXClient {
                     }
 
                     for position in positions {
-                        var category = Category.Cash
+                        var category: Position.Category = .Equity
                         switch (positionType) {
-                            case "POSMF": category = Category.Fund
-                            case "POSSTOCK": category = Category.Equity
-                            case "POSDEBT": category = Category.Bond
-                            case "POSOPT": category = Category.Option
-                            default: Category.Cash
+                            case "POSMF": category = .Fund
+                            case "POSSTOCK": category = .Equity
+                            case "POSDEBT": category = .Bond
+                            case "POSOPT": category = .Option
+                            default: continue
                         }
 
                         var symbol = (position.valueForKeyPath("INVPOS.MEMO") as? String)
@@ -287,12 +287,12 @@ class OFXClient {
                             quantity: Double(position.valueForKeyPath("INVPOS.UNITS") as! String) ?? 0
                         )
 
-                        if category == Category.Bond {
+                        if category == .Bond {
                             position.descr = "Debt Security"
                             position.price /= 100
                         }
 
-                        if category == Category.Option {
+                        if category == .Option {
                             let components = position.symbol.componentsSeparatedByString(" ")
                             position.symbol = components.first ?? position.symbol
                             position.descr = components[1..<components.endIndex].joinWithSeparator(" ")
@@ -303,11 +303,6 @@ class OFXClient {
                             account.positions.append(position)
                         }
                     }
-                }
-
-                account.sync() {
-                    account.positions.append(Position("Cash", category: Category.Cash, price: account.cash, quantity: 1))
-                    account.positions.sortInPlace { Double($0.quantity)*$0.price > Double($1.quantity)*$1.price }
                 }
 
                 completionHandler(account: account)
