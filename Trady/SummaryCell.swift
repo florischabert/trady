@@ -19,7 +19,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
     @IBOutlet weak var chartScrollView: UIScrollView!
     @IBOutlet weak var pieChartView: PieChartView!
     @IBOutlet weak var lineChartView: LineChartView!
-    @IBOutlet weak var volumeChartView: BarChartView!
+    @IBOutlet weak var pageControl: UIPageControl!
     
     weak var portfolioController: PortfolioViewController?
 
@@ -28,6 +28,9 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
     }
     
     func update(account: Account) {
+        chartScrollView.delegate = self
+
+        change.text = "-"
 
         if let _ = app.credentials {
             #if TARGET_OS_SIMULATOR
@@ -74,7 +77,6 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             pieChartView.hidden = false
             chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
             createPieChart(account)
-            chartScrollView.flashScrollIndicators()
         }
         else {
             pieChartView.hidden = true
@@ -92,7 +94,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         pieChartView.holeRadiusPercent = 0.38
         pieChartView.rotationEnabled = false
         pieChartView.userInteractionEnabled = false
-        pieChartView.setExtraOffsets(left: 0, top: 14, right: 0, bottom: 20)
+        pieChartView.setExtraOffsets(left: 0, top: 0, right: 0, bottom: 5)
 
         var ratios: [ChartDataEntry] = []
         var names: [String] = []
@@ -137,7 +139,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
                     let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
                     dataEntries.append(dataEntry)
                 }
-                dataSets.append(LineChartDataSet(yVals: dataEntries, label: "Current Portfolio"))
+                dataSets.append(LineChartDataSet(yVals: dataEntries, label: "Portfolio"))
                 colors.append(PortfolioViewController.blue)
             }
         }
@@ -149,7 +151,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
                 dataEntries.append(dataEntry)
                 names.append(data.date)
             }
-            dataSets.append(LineChartDataSet(yVals: dataEntries, label: "S&P 500 Index"))
+            dataSets.append(LineChartDataSet(yVals: dataEntries, label: "S&P 500"))
             colors.append(PortfolioViewController.red)
         }
 
@@ -171,9 +173,11 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         let lineChartData = LineChartData(xVals: names, dataSets: dataSets)
         lineChartView.data = lineChartData
         lineChartView.legend.enabled = true
-        lineChartView.legend.position = .BelowChartCenter
-        lineChartView.legend.form = .Line
-        lineChartView.legend.yOffset = 12
+        lineChartView.legend.position = .LeftOfChart
+        lineChartView.legend.form = .Circle
+        lineChartView.legend.formSize = 4
+        lineChartView.legend.yOffset = 188
+        lineChartView.legend.font = UIFont.systemFontOfSize(8)
         lineChartView.userInteractionEnabled = false
         lineChartView.descriptionText = ""
         lineChartView.leftAxis.enabled = true
@@ -193,8 +197,12 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         lineChartView.xAxis.drawGridLinesEnabled = false
         lineChartView.xAxis.drawAxisLineEnabled = false
         lineChartView.xAxis.labelPosition = .Bottom
-        lineChartView.setViewPortOffsets(left: 0, top: 5, right: 0, bottom: 25)
+        lineChartView.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 5)
         lineChartView.leftAxis.startAtZeroEnabled = false
     }
 
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+        pageControl.currentPage = Int(scrollView.contentOffset.x) / Int(scrollView.frame.size.width / 2)
+    }
+    
 }

@@ -250,7 +250,7 @@ extension PortfolioViewController {
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
         if indexPath.section == 0 {
-            return 305
+            return 296
         }
 
         if indexPath.section == 1 {
@@ -281,3 +281,4 @@ extension PortfolioViewController {
     }
 
 }
+

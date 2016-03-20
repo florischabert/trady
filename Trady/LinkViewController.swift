@@ -42,7 +42,7 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
             self.navigationItem.hidesBackButton = self.app.credentials == nil
 
             if let cred = self.app.credentials {
-                self.account.text = "Currently linked with account \(cred.account)"
+                self.account.text = "Account \(cred.account)"
             }
             else {
                 self.username.becomeFirstResponder()
