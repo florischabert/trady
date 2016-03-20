@@ -31,7 +31,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         if let _ = app.credentials {
             value.text = TARGET_OS_SIMULATOR == 1 ? "$000,000.00" : account.value.currency
 
-            var text = account.change?.currency ?? "-"
+            var text = "\(account.change > 0 ? "+" : "")\(account.change?.currency ?? "-")"
             if let changeValue = account.change {
                 text += " \(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (account.value - changeValue)))%"
 
@@ -87,7 +87,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         pieChartView.holeRadiusPercent = 0.38
         pieChartView.rotationEnabled = false
         pieChartView.userInteractionEnabled = false
-        pieChartView.setExtraOffsets(left: 0, top: 20, right: 0, bottom: 20)
+        pieChartView.setExtraOffsets(left: 0, top: 14, right: 0, bottom: 20)
 
         var ratios: [ChartDataEntry] = []
         var names: [String] = []
@@ -191,7 +191,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         lineChartView.xAxis.drawGridLinesEnabled = false
         lineChartView.xAxis.drawAxisLineEnabled = false
         lineChartView.xAxis.labelPosition = .Bottom
-        lineChartView.setViewPortOffsets(left: 0, top: 5, right: 0, bottom: 20)
+        lineChartView.setViewPortOffsets(left: 0, top: 5, right: 0, bottom: 25)
         lineChartView.leftAxis.startAtZeroEnabled = false
     }
 

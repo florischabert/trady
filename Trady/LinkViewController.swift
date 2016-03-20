@@ -30,16 +30,19 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
     }
 
     func update() {
-        unlinkButton.hidden = app.credentials == nil
-        account.hidden = app.credentials == nil
-        username.hidden = app.credentials != nil
-        password.hidden = app.credentials != nil
+        dispatch_async(dispatch_get_main_queue()) {
+            self.unlinkButton.hidden = self.app.credentials == nil
+            self.account.hidden = self.app.credentials == nil
+            self.username.hidden = self.app.credentials != nil
+            self.password.hidden = self.app.credentials != nil
+            self.navigationItem.hidesBackButton = self.app.credentials == nil
 
-        if let cred = app.credentials {
-            account.text = "Currently linked with account \(cred.account)"
-        }
-        else {
-            username.becomeFirstResponder()
+            if let cred = self.app.credentials {
+                self.account.text = "Currently linked with account \(cred.account)"
+            }
+            else {
+                self.username.becomeFirstResponder()
+            }
         }
     }
 
@@ -91,7 +94,7 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
 
                 dispatch_async(dispatch_get_main_queue()) {
                     self.setWaitState(false)
-                    self.dismissViewControllerAnimated(true) {}
+                    self.navigationController?.popViewControllerAnimated(true)
                 }
             }
             else {

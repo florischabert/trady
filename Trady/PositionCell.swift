@@ -30,7 +30,7 @@ class PositionCell: UITableViewCell {
 
         if index == -1 {
             symbol.text = "Cash"
-            change.text = account.cash.currency
+            change.text = app.credentials == nil ? "-" : account.cash.currency
             change.font = UIFont.systemFontOfSize(12)
             change.textColor = UIColor.blackColor()
             descr.text = ""
@@ -56,7 +56,18 @@ class PositionCell: UITableViewCell {
         descr.text = YahooClient.quotes[position.symbol]?.descr ?? position.descr
 
         if let changeValue = YahooClient.quotes[position.symbol]?.change {
-            change.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (YahooClient.quotes[position.symbol]!.price - changeValue)))%"
+            if app.credentials == nil {
+                change.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (YahooClient.quotes[position.symbol]!.price - changeValue)))%"
+            }
+            else {
+                change.text = "\(changeValue > 0 ? "+" : "")\((changeValue * position.quantity).currency) \(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (YahooClient.quotes[position.symbol]!.price - changeValue)))%"
+
+                let attributedText = NSMutableAttributedString(attributedString: change.attributedText!)
+                let length = change.text!.startIndex.distanceTo(change.text!.rangeOfString(" ")!.endIndex)
+                attributedText.setAttributes([NSFontAttributeName: UIFont.systemFontOfSize(change.font.pointSize-2)], range: NSMakeRange(0, length))
+                change.attributedText = attributedText
+
+            }
             change.textColor = changeValue < 0 ? PortfolioViewController.red : PortfolioViewController.green
         }
         else {
@@ -117,8 +128,10 @@ class PositionCell: UITableViewCell {
             names = ["", "Today"]
         }
 
-        names[0] = ""
-        names[names.count-2] = ""
+        if names.count > 2 {
+            names[0] = ""
+            names[names.count-2] = ""
+        }
 
         let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: position.symbol)
         lineChartDataSet.drawCubicEnabled = true

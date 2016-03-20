@@ -9,37 +9,65 @@
 import Foundation
 
 class YahooClient {
-    class DataPoint: NSObject, NSCoding{
+    class DataPoint: NSObject, NSCoding {
         var date: String
+        var volume: Double
         var close: Double
-        init(date: String, close: Double) {
+        
+        init(date: String, close: Double, volume: Double) {
             self.date = date
             self.close = close
+            self.volume = volume
         }
         required convenience init(coder decoder: NSCoder) {
             let date = decoder.decodeObjectForKey("date") as! String
             let close = decoder.decodeObjectForKey("close") as! Double
-            self.init(date: date, close: close)
+            let volume = decoder.decodeObjectForKey("volume") as! Double
+            self.init(date: date, close: close, volume: volume)
         }
         func encodeWithCoder(coder: NSCoder) {
             coder.encodeObject(date, forKey: "date")
             coder.encodeObject(close, forKey: "close")
+            coder.encodeObject(volume, forKey: "volume")
         }
     }
 
     static var historicalData = [String:[DataPoint]]()
 
-    class Quote {
+    class Quote: NSObject, NSCoding {
         var descr: String = ""
         var price: Double = 0
         var change: Double?
         var pe: Double?
         var cap: String?
+
+        required convenience init(coder decoder: NSCoder) {
+            self.init()
+            self.descr = decoder.decodeObjectForKey("descr") as! String
+        }
+        func encodeWithCoder(coder: NSCoder) {
+            coder.encodeObject(descr, forKey: "descr")
+        }
     }
 
     static var quotes = [String: Quote]()
 
+    static func loadFromDefaults() {
+        if quotes.count == 0 {
+            if let data = NSUserDefaults.standardUserDefaults().objectForKey("quotes") as? NSData {
+                quotes = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! [String: Quote]
+            }
+        }
+
+        if historicalData.count == 0 {
+            if let data = NSUserDefaults.standardUserDefaults().objectForKey("historicalData") as? NSData {
+                historicalData = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! [String:[DataPoint]]
+            }
+        }
+    }
+
     static func updateAccount(account: Account, completion: () -> Void = {}) {
+
         var positions: [Position]?
         account.sync {
             positions = account.positions
@@ -104,17 +132,17 @@ class YahooClient {
                 account.value = value + account.cash
             }
 
+            let defaults = NSUserDefaults.standardUserDefaults()
+            let data = NSKeyedArchiver.archivedDataWithRootObject(self.quotes) as NSData
+            defaults.setObject(data, forKey: "quotes")
+            defaults.synchronize()
+
             completion()
         }
         task.resume()
     }
 
     static func historical(account:Account, completion: () -> Void = {}) {
-        if historicalData.count == 0 {
-            if let data = NSUserDefaults.standardUserDefaults().objectForKey("historicalData") as? NSData {
-                historicalData = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! [String:[DataPoint]]
-            }
-        }
 
         let howManyDays: NSTimeInterval = 100
 
@@ -161,14 +189,16 @@ class YahooClient {
                         for quote in quotes {
                             if let symbol = quote["Symbol"] as? String,
                                 date = quote["Date"] as? String,
-                                close = quote["Close"] as? String,
-                                value = Double(close) {
+                                closeString = quote["Close"] as? String,
+                                close = Double(closeString),
+                                volumeString = quote["Volume"] as? String,
+                                volume = Double(volumeString) {
 
                                 let symbol = symbol.stringByRemovingPercentEncoding!
                                 let niceDateFormatter = NSDateFormatter()
                                 niceDateFormatter.dateFormat = "MMM d"
                                 let dateString = niceDateFormatter.stringFromDate(dateFormatter.dateFromString(date)!)
-                                let dataPoint = DataPoint(date: dateString, close: value)
+                                let dataPoint = DataPoint(date: dateString, close: close, volume: volume)
 
                                 if let _ = historicalData[symbol] {
                                     historicalData[symbol]!.insert(dataPoint, atIndex: 0)
@@ -196,7 +226,7 @@ class YahooClient {
                                 value += units * data[i].close
                             }
 
-                            portfolioData.append(DataPoint(date: date, close: value))
+                            portfolioData.append(DataPoint(date: date, close: value, volume:historicalData["^GSPC"]![i].volume))
                         }
 
                         historicalData["Portfolio"] = portfolioData

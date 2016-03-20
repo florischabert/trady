@@ -56,15 +56,6 @@ class PortfolioViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let buttonView = UIView(frame: CGRectMake(0, 0, 40, 40))
-        let button = UIButton(type: .Custom)
-        button.setBackgroundImage(UIImage(named: "TopImage"), forState: .Normal)
-        button.adjustsImageWhenHighlighted = false
-        button.frame = CGRectMake(0, 0, 40, 40)
-        button.addTarget(self, action: "link:", forControlEvents: .TouchUpInside)
-        buttonView.addSubview(button)
-        navigationItem.titleView = buttonView
-
 //        navigationController?.hidesBarsOnSwipe = true
 
         setupTableView()
@@ -84,9 +75,9 @@ class PortfolioViewController: UITableViewController {
         }
         dispatch_resume(timer!)
 
+        YahooClient.loadFromDefaults()
+        
         self.refreshQuotes()
-
-        YahooClient.historical(account)
     }
 
     override func viewDidAppear(animated: Bool) {
@@ -111,10 +102,6 @@ class PortfolioViewController: UITableViewController {
         }
     }
 
-    func link(sender: AnyObject) {
-        self.performSegueWithIdentifier("link", sender: self)
-    }
-
     func refresh(sender: AnyObject) {
         struct Status { static var refreshing = false }
 
@@ -133,9 +120,15 @@ class PortfolioViewController: UITableViewController {
                 return
             }
         }
-        self.tableView.reloadData()
+        dispatch_async(dispatch_get_main_queue()) {
+            self.tableView.reloadData()
+        }
 
         let completion = {
+            YahooClient.historical(self.account) {
+                self.tableView.reloadData()
+            }
+
             Status.refreshing = false
             dispatch_async(dispatch_get_main_queue()) {
                 self.refreshControl?.endRefreshing()
@@ -243,7 +236,7 @@ extension PortfolioViewController {
 
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 
-        if indexPath.section <= 1 {
+        if indexPath.section == 0 {
             return
         }
 
