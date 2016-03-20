@@ -19,7 +19,8 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
     @IBOutlet weak var chartScrollView: UIScrollView!
     @IBOutlet weak var pieChartView: PieChartView!
     @IBOutlet weak var lineChartView: LineChartView!
-
+    @IBOutlet weak var volumeChartView: BarChartView!
+    
     weak var portfolioController: PortfolioViewController?
 
     var app: AppDelegate {

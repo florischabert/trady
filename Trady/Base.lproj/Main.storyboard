@@ -169,10 +169,10 @@
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bwP-cr-EhS" customClass="BarChartView" customModule="Charts">
-                                            <rect key="frame" x="0.0" y="125" width="600" height="106"/>
+                                            <rect key="frame" x="0.0" y="112" width="600" height="119"/>
                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                             <constraints>
-                                                <constraint firstAttribute="height" constant="106" id="NEI-qa-DBy"/>
+                                                <constraint firstAttribute="height" constant="119" id="NEI-qa-DBy"/>
                                             </constraints>
                                         </view>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Symbol" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="q5B-oh-nsc">
@@ -213,7 +213,7 @@
                                     </subviews>
                                     <constraints>
                                         <constraint firstItem="BJX-Yv-bOu" firstAttribute="trailing" secondItem="Qhq-Vo-VVC" secondAttribute="trailing" id="2Ez-UL-E7y"/>
-                                        <constraint firstItem="bwP-cr-EhS" firstAttribute="top" secondItem="7lH-ix-BQo" secondAttribute="bottom" constant="77" id="CJf-Xb-dUm"/>
+                                        <constraint firstItem="bwP-cr-EhS" firstAttribute="top" secondItem="7lH-ix-BQo" secondAttribute="bottom" constant="64" id="CJf-Xb-dUm"/>
                                         <constraint firstItem="GXx-RS-IvQ" firstAttribute="top" secondItem="7lH-ix-BQo" secondAttribute="bottom" constant="17" id="KHz-33-baK"/>
                                         <constraint firstItem="7lH-ix-BQo" firstAttribute="leading" secondItem="q5B-oh-nsc" secondAttribute="leading" id="Khg-Tp-XWl"/>
                                         <constraint firstItem="bwP-cr-EhS" firstAttribute="trailing" secondItem="GXx-RS-IvQ" secondAttribute="trailing" id="MLT-NZ-Gj7"/>

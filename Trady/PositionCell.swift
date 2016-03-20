@@ -205,7 +205,7 @@ class PositionCell: UITableViewCell {
         volumeChart.drawGridBackgroundEnabled = false
         volumeChart.drawBordersEnabled = false
         volumeChart.xAxis.enabled = false
-        volumeChart.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 20)
-        volumeChart.alpha = 0.1
+        volumeChart.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 0)
+        volumeChart.alpha = 0.08
     }
 }
