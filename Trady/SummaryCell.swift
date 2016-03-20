@@ -30,7 +30,11 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
     func update(account: Account) {
 
         if let _ = app.credentials {
-            value.text = TARGET_OS_SIMULATOR == 1 ? "$000,000.00" : account.value.currency
+            #if TARGET_OS_SIMULATOR
+            value.text = "$000,000.00"
+            #else
+            value.text = account.value.currency
+            #endif
 
             var text = "\(account.change > 0 ? "+" : "")\(account.change?.currency ?? "-")"
             if let changeValue = account.change {
@@ -94,17 +98,14 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         var names: [String] = []
         var colors: [UIColor] = []
 
-        var positions: [Position]?
-        account.sync {
-            positions = account.positions
-        }
+        let positions = account.positions
 
         let ratio = account.cash / account.value
         names.append(ratio > 0.1 ? "Cash" : "")
         colors.append(PortfolioViewController.green)
         ratios.append(ChartDataEntry(value: ratio, xIndex: 0))
 
-        for (index, position) in positions!.enumerate() {
+        for (index, position) in positions.enumerate() {
             let ratio = (position.price * position.quantity) / account.value
             names.append(ratio > 0.1 ? position.symbol : "")
             colors.append(PortfolioViewController.colors[index % PortfolioViewController.colors.count])

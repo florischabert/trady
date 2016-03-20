@@ -25,8 +25,12 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
 
         username.delegate = self
         password.delegate = self
-        
+
         update()
+    }
+
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
     }
 
     func update() {

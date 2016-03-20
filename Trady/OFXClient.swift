@@ -299,9 +299,7 @@ class OFXClient {
                             position.price *= 100
                         }
 
-                        account.sync() {
-                            account.positions.append(position)
-                        }
+                        account.positions.append(position)
                     }
                 }
 

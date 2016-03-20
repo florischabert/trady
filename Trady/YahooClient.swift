@@ -68,11 +68,7 @@ class YahooClient {
 
     static func updateAccount(account: Account, completion: () -> Void = {}) {
 
-        var positions: [Position]?
-        account.sync {
-            positions = account.positions
-        }
-        let stocksToUpdate = positions!.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
+        let stocksToUpdate = account.positions.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
         let stocks = stocksToUpdate.map{"\"\($0)\""}.joinWithSeparator(",")
 
         let baseURL = "https://query.yahooapis.com/v1/public/yql?q="
@@ -123,14 +119,12 @@ class YahooClient {
 
             var change: Double = 0
             var value: Double = 0
-            account.sync() {
-                for position in account.positions {
-                    change += (self.quotes[position.symbol]?.change ?? 0) * position.quantity
-                    value += (position.price ?? 0) * position.quantity
-                }
-                account.change = change
-                account.value = value + account.cash
+            for position in account.positions {
+                change += (self.quotes[position.symbol]?.change ?? 0) * position.quantity
+                value += (position.price ?? 0) * position.quantity
             }
+            account.change = change
+            account.value = value + account.cash
 
             let defaults = NSUserDefaults.standardUserDefaults()
             let data = NSKeyedArchiver.archivedDataWithRootObject(self.quotes) as NSData
@@ -151,11 +145,7 @@ class YahooClient {
 
         var stocksToUpdate = ["^GSPC"]
 
-        var positions: [Position]?
-        account.sync {
-            positions = account.positions
-        }
-        stocksToUpdate += positions!.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
+        stocksToUpdate += account.positions.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
 
         let stocks = stocksToUpdate.map{"\"\($0)\""}.joinWithSeparator(",")
         let startDate = dateFormatter.stringFromDate(NSDate().dateByAddingTimeInterval(-howManyDays*24*60*60))
@@ -216,7 +206,7 @@ class YahooClient {
 
                             for (key, var data) in historicalData {
                                 var units: Double = 0
-                                for position in positions! {
+                                for position in account.positions {
                                     if position.symbol == key {
                                         units = position.quantity
                                         break

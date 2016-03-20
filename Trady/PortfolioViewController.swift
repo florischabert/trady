@@ -28,6 +28,8 @@ class PortfolioViewController: UITableViewController {
 
     var backgrounded = false
 
+    var lastUpdated: NSDate?
+
     var expandedIndexPath: NSIndexPath?
 
     var timer: dispatch_source_t?
@@ -38,27 +40,44 @@ class PortfolioViewController: UITableViewController {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
 
-    func setupTableView() {
-        refreshControl = UIRefreshControl()
-        refreshControl?.hidden = true
-        refreshControl?.backgroundColor = UIColor(red: 0.99, green: 0.99, blue: 0.99, alpha: 1)
-        refreshControl?.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
+    func animateTitle(title: String? = nil) {
 
-        let px = 1 / UIScreen.mainScreen().scale
-        let frame = CGRectMake(0, 0, self.tableView.frame.size.width, px)
-        let line: UIView = UIView(frame: frame)
-        tableView.tableHeaderView = line
-        line.backgroundColor = tableView.separatorColor
+        var text: String
+        if let title = title {
+            text = title
+        }
+        else {
+            text = "Portfolio"
 
-        tableView.contentInset = UIEdgeInsetsMake(-1, 0, 0, 0);
+            if let _ = app.credentials,
+                change = account.change {
+                    text += change >= 0 ? " ➚" : " ➘"
+            }
+        }
+
+        let animation = CATransition()
+        animation.duration = 0.2
+        animation.type = kCATransitionFade;
+        animation.timingFunction = CAMediaTimingFunction(name: "easeInEaseOut")
+        navigationItem.titleView!.layer.addAnimation(animation, forKey:"changeTitle")
+
+        (navigationItem.titleView as! UILabel).text = text;
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-//        navigationController?.hidesBarsOnSwipe = true
+        let titleLabelView = UILabel(frame:CGRectMake(0, 0, 100, 22))
+        titleLabelView.backgroundColor = UIColor.clearColor()
+        titleLabelView.textAlignment = .Center
+        titleLabelView.textColor = UIColor.blackColor()
+        titleLabelView.font = UIFont.boldSystemFontOfSize(16.0)
+        titleLabelView.adjustsFontSizeToFitWidth = true
+        titleLabelView.text = "Potfolio"
+        navigationItem.titleView = titleLabelView;
 
-        setupTableView()
+        refreshControl = UIRefreshControl()
+        refreshControl?.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
 
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidEnterBackground:"), name:UIApplicationDidEnterBackgroundNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidBecomeActive:"), name:UIApplicationDidBecomeActiveNotification, object: nil)
@@ -71,17 +90,19 @@ class PortfolioViewController: UITableViewController {
         timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, DISPATCH_TARGET_QUEUE_DEFAULT);
         dispatch_source_set_timer(timer!, dispatch_time(DISPATCH_TIME_NOW, Int64(updateRate) * Int64(NSEC_PER_SEC)), UInt64(updateRate) * NSEC_PER_SEC, NSEC_PER_SEC)
         dispatch_source_set_event_handler(timer!) {
-            self.refreshQuotes()
+            self.refresh(self)
         }
         dispatch_resume(timer!)
 
         YahooClient.loadFromDefaults()
         
-        self.refreshQuotes()
+        refresh(self)
     }
 
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
+
+        refreshControl?.attributedTitle = NSAttributedString(string: "Pull to refresh")
 
         refresh(self)
     }
@@ -103,63 +124,83 @@ class PortfolioViewController: UITableViewController {
     }
 
     func refresh(sender: AnyObject) {
-        struct Status { static var refreshing = false }
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+            var updateOFX = false
+            var updateHistorical = false
+            var updateQuotes = false
 
-        if Status.refreshing {
-            return
-        }
-
-        Status.refreshing = true
-
-        if app.credentials == nil {
-            let err: OSStatus
-            (app.credentials, err) = Credentials.loadFromKeyChain()
-            if err == errSecItemNotFound {
-                self.performSegueWithIdentifier("link", sender: self)
-                Status.refreshing = false
-                return
+            var interval: NSTimeInterval
+            if let lastUpdated = self.lastUpdated {
+               interval = NSDate().timeIntervalSinceDate(lastUpdated)
             }
-        }
-        dispatch_async(dispatch_get_main_queue()) {
-            self.tableView.reloadData()
-        }
-
-        let completion = {
-            YahooClient.historical(self.account) {
-                self.tableView.reloadData()
+            else {
+                interval = NSDate.timeIntervalSinceReferenceDate()
             }
 
-            Status.refreshing = false
-            dispatch_async(dispatch_get_main_queue()) {
-                self.refreshControl?.endRefreshing()
-                self.tableView.reloadData()
+            if interval > 4 * 3600 {
+                updateHistorical = true
             }
-        }
+            if interval > 3 * 3600 {
+                updateOFX = true
+            }
+            if interval > 10 {
+                updateQuotes = true
+            }
 
-        if let credentials = app.credentials {
-            app.ofx.getAccount(credentials) { account in
-                if let account = account {
-                    self.account = account
-                }
-
-                self.refreshQuotes() {
-                    completion()
+            if self.app.credentials == nil {
+                let err: OSStatus
+                (self.app.credentials, err) = Credentials.loadFromKeyChain()
+                if err == errSecItemNotFound {
+                    self.performSegueWithIdentifier("link", sender: self)
+                    return
                 }
             }
-        }
-        else {
-            self.refreshQuotes() {
-                completion()
-            }
-        }
-    }
 
-    func refreshQuotes(completion: () -> Void = {}) {
-        YahooClient.updateAccount(self.account) {
+            dispatch_sync(dispatch_get_main_queue()) {
+                self.animateTitle("Refreshing...")
+            }
+
+            let completion = {
+                dispatch_sync(dispatch_get_main_queue()) {
+                    self.refreshControl?.endRefreshing()
+                    self.tableView.reloadData()
+                    self.animateTitle()
+                }
+
+                self.lastUpdated = NSDate()
+            }
+
+            let sem = dispatch_semaphore_create(0)
+
+            if let credentials = self.app.credentials {
+
+                if updateOFX {
+                    self.app.ofx.getAccount(credentials) { account in
+                        if let account = account {
+                            self.account = account
+                        }
+
+                        dispatch_semaphore_signal(sem)
+                    }
+                    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
+                }
+
+                if updateHistorical {
+                    YahooClient.historical(self.account) {
+                        dispatch_semaphore_signal(sem)
+                    }
+                    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
+                }
+            }
+
+            if updateQuotes {
+                YahooClient.updateAccount(self.account) {
+                    dispatch_semaphore_signal(sem)
+                }
+                dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
+            }
+
             completion()
-            dispatch_async(dispatch_get_main_queue()) {
-                self.tableView.reloadData()
-            }
         }
     }
 
@@ -182,12 +223,7 @@ extension PortfolioViewController {
             return 1
         }
 
-        var count = 0
-        account.sync {
-            count = self.account.positions.count
-        }
-
-        return count
+        return self.account.positions.count
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -221,11 +257,7 @@ extension PortfolioViewController {
             return 35
         }
 
-        var category: Position.Category?
-        account.sync {
-            category = self.account.positions[indexPath.row].category
-        }
-
+        let category = self.account.positions[indexPath.row].category
         let shouldExpand = category == .Equity || category == .Fund
         if indexPath == expandedIndexPath && shouldExpand {
             return 230
