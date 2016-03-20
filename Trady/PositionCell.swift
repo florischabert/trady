@@ -16,6 +16,7 @@ class PositionCell: UITableViewCell {
     @IBOutlet weak var change: UILabel!
     @IBOutlet weak var amount: UILabel!
     @IBOutlet weak var chart: LineChartView!
+    @IBOutlet weak var volumeChart: BarChartView!
     @IBOutlet weak var details: UILabel!
     
     var expanded = false
@@ -109,6 +110,7 @@ class PositionCell: UITableViewCell {
 
         chart.hidden = !expanded
         createChart(position, index: index)
+        createVolumeChart(position, index: index)
     }
 
     func createChart(position: Position, index: Int) {
@@ -173,5 +175,37 @@ class PositionCell: UITableViewCell {
         chart.xAxis.labelFont = UIFont.systemFontOfSize(9)
         chart.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 20)
         chart.leftAxis.startAtZeroEnabled = false
+
+        chart.backgroundColor = UIColor.clearColor()
+    }
+
+    func createVolumeChart(position: Position, index: Int) {
+        var names: [String] = []
+        var dataEntries: [ChartDataEntry] = []
+
+        if let historical = YahooClient.historicalData[position.symbol] {
+            for (i, data) in historical.enumerate() {
+                let dataEntry = BarChartDataEntry(value: data.volume, xIndex: i)
+                dataEntries.append(dataEntry)
+                names.append("")
+            }
+        }
+
+        let barChartDataSet = BarChartDataSet(yVals: dataEntries, label: nil)
+        barChartDataSet.drawValuesEnabled = false
+        barChartDataSet.setColor(PortfolioViewController.colors[index % PortfolioViewController.colors.count])
+
+        let barChartData = BarChartData(xVals: names, dataSet: barChartDataSet)
+        volumeChart.data = barChartData
+        volumeChart.legend.enabled = false
+        volumeChart.userInteractionEnabled = false
+        volumeChart.descriptionText = ""
+        volumeChart.rightAxis.enabled = false
+        volumeChart.leftAxis.enabled = false
+        volumeChart.drawGridBackgroundEnabled = false
+        volumeChart.drawBordersEnabled = false
+        volumeChart.xAxis.enabled = false
+        volumeChart.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 20)
+        volumeChart.alpha = 0.1
     }
 }
