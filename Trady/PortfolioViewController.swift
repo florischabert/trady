@@ -278,6 +278,10 @@ extension PortfolioViewController {
         tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
 
         tableView.endUpdates()
+
+        if let expandedIndexPath = expandedIndexPath {
+            tableView.scrollToRowAtIndexPath(expandedIndexPath, atScrollPosition: .Bottom, animated: true)
+        }
     }
 
 }
