@@ -33,11 +33,8 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         change.text = "-"
 
         if let _ = app.credentials {
-            #if TARGET_OS_SIMULATOR
-            value.text = "$000,000.00"
-            #else
             value.text = account.value.currency
-            #endif
+//            value.text = "$000,000.00"
 
             var text = "\(account.change > 0 ? "+" : "")\(account.change?.currency ?? "-")"
             if let changeValue = account.change {
@@ -77,10 +74,12 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             pieChartView.hidden = false
             chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
             createPieChart(account)
+            pageControl.hidden = false
         }
         else {
             pieChartView.hidden = true
             chartScrollView.contentSize.width = lineChartView.frame.size.width
+            pageControl.hidden = true
         }
     }
 

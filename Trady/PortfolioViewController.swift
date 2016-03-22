@@ -95,14 +95,10 @@ class PortfolioViewController: UITableViewController {
         dispatch_resume(timer!)
 
         YahooClient.loadFromDefaults()
-        
-        refresh(self)
     }
 
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
-
-        refreshControl?.attributedTitle = NSAttributedString(string: "Pull to refresh")
 
         refresh(self)
     }
@@ -127,7 +123,6 @@ class PortfolioViewController: UITableViewController {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             var updateOFX = false
             var updateHistorical = false
-            var updateQuotes = false
 
             var interval: NSTimeInterval
             if let lastUpdated = self.lastUpdated {
@@ -143,14 +138,14 @@ class PortfolioViewController: UITableViewController {
             if interval > 3 * 3600 {
                 updateOFX = true
             }
-            if interval > 10 {
-                updateQuotes = true
-            }
 
             if self.app.credentials == nil {
                 let err: OSStatus
                 (self.app.credentials, err) = Credentials.loadFromKeyChain()
                 if err == errSecItemNotFound {
+                    dispatch_sync(dispatch_get_main_queue()) {
+                        self.refreshControl?.endRefreshing()
+                    }
                     self.performSegueWithIdentifier("link", sender: self)
                     return
                 }
@@ -166,9 +161,9 @@ class PortfolioViewController: UITableViewController {
                     self.tableView.reloadData()
                     self.animateTitle()
                 }
-
-                self.lastUpdated = NSDate()
             }
+
+            self.lastUpdated = NSDate()
 
             let sem = dispatch_semaphore_create(0)
 
@@ -193,12 +188,10 @@ class PortfolioViewController: UITableViewController {
                 }
             }
 
-            if updateQuotes {
-                YahooClient.updateAccount(self.account) {
-                    dispatch_semaphore_signal(sem)
-                }
-                dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
+            YahooClient.updateAccount(self.account) {
+                dispatch_semaphore_signal(sem)
             }
+            dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
 
             completion()
         }
@@ -280,7 +273,12 @@ extension PortfolioViewController {
         tableView.endUpdates()
 
         if let expandedIndexPath = expandedIndexPath {
-            tableView.scrollToRowAtIndexPath(expandedIndexPath, atScrollPosition: .Bottom, animated: true)
+            let cellRect = tableView.rectForRowAtIndexPath(expandedIndexPath)
+            let completelyVisible = tableView.bounds.contains(cellRect)
+
+            if !completelyVisible {
+                tableView.scrollToRowAtIndexPath(expandedIndexPath, atScrollPosition: .Bottom, animated: true)
+            }
         }
     }
 

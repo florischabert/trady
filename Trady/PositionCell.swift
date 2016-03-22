@@ -56,19 +56,9 @@ class PositionCell: UITableViewCell {
         symbol.text = position.symbol
         descr.text = YahooClient.quotes[position.symbol]?.descr ?? position.descr
 
-        if let changeValue = YahooClient.quotes[position.symbol]?.change {
-            if app.credentials == nil {
-                change.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (YahooClient.quotes[position.symbol]!.price - changeValue)))%"
-            }
-            else {
-                change.text = "\(changeValue > 0 ? "+" : "")\((changeValue * position.quantity).currency) \(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (YahooClient.quotes[position.symbol]!.price - changeValue)))%"
-
-                let attributedText = NSMutableAttributedString(attributedString: change.attributedText!)
-                let length = change.text!.startIndex.distanceTo(change.text!.rangeOfString(" ")!.endIndex)
-                attributedText.setAttributes([NSFontAttributeName: UIFont.systemFontOfSize(change.font.pointSize-2)], range: NSMakeRange(0, length))
-                change.attributedText = attributedText
-
-            }
+        if let price = YahooClient.quotes[position.symbol]!.price,
+            changeValue = YahooClient.quotes[position.symbol]?.change {
+            change.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (price - changeValue)))%"
             change.textColor = changeValue < 0 ? PortfolioViewController.red : PortfolioViewController.green
         }
         else {

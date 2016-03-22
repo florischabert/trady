@@ -115,7 +115,7 @@ class OFXClient {
     }
 
     private func request(credentials: Credentials, ofxString: String, completionHandler: (ofx: [String: AnyObject]?) -> Void) {
-        let urlRequest = NSMutableURLRequest(URL: url)
+        let urlRequest = NSMutableURLRequest(URL: url, cachePolicy: .ReloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 1)
         urlRequest.HTTPMethod = "POST"
 
         let header =

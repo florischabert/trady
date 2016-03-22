@@ -59,7 +59,7 @@
                                             </constraints>
                                         </imageView>
                                         <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YDV-VS-Dke">
-                                            <rect key="frame" x="0.0" y="68" width="600" height="213"/>
+                                            <rect key="frame" x="0.0" y="68" width="600" height="233"/>
                                             <subviews>
                                                 <view tag="23" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="j8p-9r-lqH" customClass="PieChartView" customModule="Charts">
                                                     <rect key="frame" x="600" y="0.0" width="600" height="213"/>
@@ -75,9 +75,9 @@
                                                 <constraint firstItem="j8p-9r-lqH" firstAttribute="bottom" secondItem="a0S-Ya-vHb" secondAttribute="bottom" id="Jt4-aL-fnn"/>
                                                 <constraint firstItem="j8p-9r-lqH" firstAttribute="width" secondItem="a0S-Ya-vHb" secondAttribute="width" id="Q7F-Om-Ybp"/>
                                                 <constraint firstItem="j8p-9r-lqH" firstAttribute="top" secondItem="a0S-Ya-vHb" secondAttribute="top" id="Sqc-39-t14"/>
-                                                <constraint firstAttribute="bottom" secondItem="a0S-Ya-vHb" secondAttribute="bottom" id="WAc-ng-fPi"/>
+                                                <constraint firstAttribute="bottom" secondItem="a0S-Ya-vHb" secondAttribute="bottom" constant="20" id="WAc-ng-fPi"/>
                                                 <constraint firstItem="a0S-Ya-vHb" firstAttribute="centerX" secondItem="YDV-VS-Dke" secondAttribute="centerX" id="Xhc-rE-3iV"/>
-                                                <constraint firstItem="a0S-Ya-vHb" firstAttribute="height" secondItem="YDV-VS-Dke" secondAttribute="height" id="iR4-dK-Xio"/>
+                                                <constraint firstItem="a0S-Ya-vHb" firstAttribute="height" secondItem="YDV-VS-Dke" secondAttribute="height" constant="-20" id="iR4-dK-Xio"/>
                                                 <constraint firstAttribute="trailing" secondItem="a0S-Ya-vHb" secondAttribute="trailing" id="iaC-wT-xVZ"/>
                                                 <constraint firstItem="j8p-9r-lqH" firstAttribute="leading" secondItem="a0S-Ya-vHb" secondAttribute="trailing" id="jhy-o8-0ND"/>
                                                 <constraint firstItem="a0S-Ya-vHb" firstAttribute="top" secondItem="YDV-VS-Dke" secondAttribute="top" id="nbh-Zm-11b"/>
@@ -125,7 +125,7 @@
                                         <constraint firstItem="sKR-Vd-EuT" firstAttribute="leading" secondItem="y1v-F5-uZE" secondAttribute="leadingMargin" constant="53" id="DA8-N7-HgZ"/>
                                         <constraint firstItem="i1I-f5-LxR" firstAttribute="leading" secondItem="y1v-F5-uZE" secondAttribute="leading" id="DNv-EU-KZQ"/>
                                         <constraint firstAttribute="trailing" secondItem="i1I-f5-LxR" secondAttribute="trailing" id="GDR-yM-RDf"/>
-                                        <constraint firstAttribute="bottomMargin" secondItem="YDV-VS-Dke" secondAttribute="bottom" constant="10.5" id="IOD-m0-4ab"/>
+                                        <constraint firstAttribute="bottomMargin" secondItem="YDV-VS-Dke" secondAttribute="bottom" constant="-9.5" id="IOD-m0-4ab"/>
                                         <constraint firstItem="i1I-f5-LxR" firstAttribute="top" secondItem="1xN-9t-nkc" secondAttribute="bottom" constant="6" id="IqL-Zn-Ewg"/>
                                         <constraint firstItem="GKh-Go-fMD" firstAttribute="top" secondItem="y1v-F5-uZE" secondAttribute="topMargin" constant="7" id="KkA-8h-xKK"/>
                                         <constraint firstItem="9xD-lI-xZy" firstAttribute="centerX" secondItem="i1I-f5-LxR" secondAttribute="centerX" id="Qg9-Wc-hb8"/>
@@ -158,7 +158,7 @@
                                 <rect key="frame" x="0.0" y="392" width="600" height="230"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Q5N-oX-fLJ" id="arG-Gm-246">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="230"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="229.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Change" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4q0-zj-B6u">

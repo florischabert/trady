@@ -36,7 +36,7 @@ class YahooClient {
 
     class Quote: NSObject, NSCoding {
         var descr: String = ""
-        var price: Double = 0
+        var price: Double?
         var change: Double?
         var pe: Double?
         var cap: String?
@@ -69,14 +69,13 @@ class YahooClient {
     static func updateAccount(account: Account, completion: () -> Void = {}) {
 
         let stocksToUpdate = account.positions.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
-        let stocks = stocksToUpdate.map{"\"\($0)\""}.joinWithSeparator(",")
+        let stocks = stocksToUpdate.joinWithSeparator(",")
 
-        let baseURL = "https://query.yahooapis.com/v1/public/yql?q="
-        let query = "select Symbol,Name,Change,MarketCapitalization,LastTradePriceOnly,PERatio from yahoo.finance.quotes where symbol in (\(stocks))"
-        let postfix = "&env=store://datatables.org/alltableswithkeys&format=json&callback="
-        let urlString = (baseURL + query + postfix).stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())
+        let baseURL = "https://download.finance.yahoo.com/d/quotes.csv"
+        let query = "?f=sl1c1j1rn&s=\(stocks)"//Symbol,LastTradePriceOnly,Change,MarketCapitalization,PERatio,Name
+        let urlString = (baseURL + query).stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())
 
-        let urlRequest = NSURLRequest(URL: NSURL(string: urlString!)!)
+        let urlRequest = NSURLRequest(URL: NSURL(string: urlString!)!, cachePolicy: .ReloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 1)
         let task = NSURLSession.sharedSession().dataTaskWithRequest(urlRequest) {
             data, response, error in
 
@@ -91,31 +90,24 @@ class YahooClient {
 
             }
 
-            do {
-                if let json = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments) as? NSDictionary {
+            if let data = data, csv = NSString(data: data, encoding: NSUTF8StringEncoding) {
 
-                    if let quotesData = json.valueForKeyPath("query.results.quote") as? NSArray {
+                for csvQuote in csv.componentsSeparatedByString("\n") {
+                    let items = csvQuote.componentsSeparatedByString(",")
+                    if (items.count >= 6) {
+                        let symbol = items[0].stringByReplacingOccurrencesOfString("\"", withString: "")
 
-                        for quoteData in quotesData {
+                        let quote = Quote()
+                        quote.price = Double(items[1])
+                        quote.change = items[2] == "N/A" ? nil : Double(items[2])
+                        quote.cap = items[3] == "N/A" ? nil : items[3]
+                        quote.pe = items[4] == "N/A" ? nil : Double(items[4])
+                        quote.descr = items[5..<items.endIndex].joinWithSeparator(",").stringByReplacingOccurrencesOfString("\"", withString: "")
 
-                            if let symbol = quoteData["Symbol"] as? String,
-                                priceString = quoteData["LastTradePriceOnly"] as? String,
-                                price = Double(priceString) {
-
-                                    let quote = Quote()
-                                    quote.price = price
-                                    quote.change = Double((quoteData["Change"] as? String) ?? "")
-                                    quote.descr = (quoteData["Name"] as? String) ?? "-"
-                                    quote.cap = quoteData["MarketCapitalization"] as? String
-                                    quote.pe = Double((quoteData["PERatio"] as? String) ?? "-")
-
-                                    self.quotes[symbol] = quote
-                            }
-                        }
+                        self.quotes[symbol] = quote
                     }
                 }
             }
-            catch {}
 
             var change: Double = 0
             var value: Double = 0
@@ -157,7 +149,7 @@ class YahooClient {
         let postfix = "&env=store://datatables.org/alltableswithkeys&format=json&callback="
         let urlString = (baseURL + query + postfix).stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())
 
-        let urlRequest = NSURLRequest(URL: NSURL(string: urlString!)!)
+        let urlRequest = NSURLRequest(URL: NSURL(string: urlString!)!, cachePolicy: .ReloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 1)
         let task = NSURLSession.sharedSession().dataTaskWithRequest(urlRequest) {
             data, response, error in
 
