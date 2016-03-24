@@ -18,13 +18,9 @@ class PortfolioViewController: UITableViewController {
     static let green = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
     static let colors = [blue, red, brown, yellow, green]
 
-    var account = Account("", value: 0, cash: 0, positions: [
-        Position("SPY", category: .Equity, price: 100, quantity: 1),
-        Position("QQQ", category: .Equity, price: 100, quantity: 1),
-        Position("AAPL", category: .Equity, price: 100, quantity: 1),
-        Position("GOOG", category: .Equity, price: 100, quantity: 1),
-        Position("TSLA", category: .Equity, price: 100, quantity: 1),
-    ])
+    var account: Account?
+
+    var extraSymbols = ["AAPL", "GOOG", "QQQ", "SPY", "TSLA", "YHOO"]
 
     var backgrounded = false
 
@@ -50,7 +46,7 @@ class PortfolioViewController: UITableViewController {
             text = "Portfolio"
 
             if let _ = app.credentials,
-                change = account.change {
+                change = account?.change {
                     text += change >= 0 ? " ➚" : " ➘"
             }
         }
@@ -76,6 +72,8 @@ class PortfolioViewController: UITableViewController {
         titleLabelView.text = "Potfolio"
         navigationItem.titleView = titleLabelView;
 
+        tableView.allowsSelectionDuringEditing = false
+
         refreshControl = UIRefreshControl()
         refreshControl?.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
 
@@ -83,7 +81,11 @@ class PortfolioViewController: UITableViewController {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidBecomeActive:"), name:UIApplicationDidBecomeActiveNotification, object: nil)
 
         if let data = NSUserDefaults.standardUserDefaults().objectForKey("account") as? NSData {
-            account = NSKeyedUnarchiver.unarchiveObjectWithData(data) as! Account
+            account = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? Account
+        }
+
+        if let data = NSUserDefaults.standardUserDefaults().objectForKey("extraSymbols") as? NSData {
+            extraSymbols = (NSKeyedUnarchiver.unarchiveObjectWithData(data) as? [String]) ?? []
         }
 
         let updateRate = 15
@@ -100,6 +102,8 @@ class PortfolioViewController: UITableViewController {
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
 
+        (self.app.credentials, _) = Credentials.loadFromKeyChain()
+
         refresh(self)
     }
 
@@ -108,7 +112,12 @@ class PortfolioViewController: UITableViewController {
         tableView.reloadData()
         backgrounded = true
         dispatch_suspend(timer!)
-        account.save()
+        account?.save()
+
+        let defaults = NSUserDefaults.standardUserDefaults()
+        let data = NSKeyedArchiver.archivedDataWithRootObject(extraSymbols) as NSData
+        defaults.removeObjectForKey("extraSymbols")
+        defaults.setObject(data, forKey: "extraSymbols")
     }
 
     func applicationDidBecomeActive(sender: AnyObject) {
@@ -135,20 +144,9 @@ class PortfolioViewController: UITableViewController {
             if interval > 4 * 3600 {
                 updateHistorical = true
             }
-            if interval > 3 * 3600 {
-                updateOFX = true
-            }
 
-            if self.app.credentials == nil {
-                let err: OSStatus
-                (self.app.credentials, err) = Credentials.loadFromKeyChain()
-                if err == errSecItemNotFound {
-                    dispatch_sync(dispatch_get_main_queue()) {
-                        self.refreshControl?.endRefreshing()
-                    }
-                    self.performSegueWithIdentifier("link", sender: self)
-                    return
-                }
+            if self.app.credentials != nil && interval > 3 * 3600 {
+                updateOFX = true
             }
 
             dispatch_sync(dispatch_get_main_queue()) {
@@ -163,32 +161,33 @@ class PortfolioViewController: UITableViewController {
                 }
             }
 
-            self.lastUpdated = NSDate()
+            if let _ = self.app.credentials {
+                self.lastUpdated = NSDate()
+            }
 
             let sem = dispatch_semaphore_create(0)
 
-            if let credentials = self.app.credentials {
+            if updateOFX {
+                self.app.ofx.getAccount(self.app.credentials!) { account in
+                    print(account)
 
-                if updateOFX {
-                    self.app.ofx.getAccount(credentials) { account in
-                        if let account = account {
-                            self.account = account
-                        }
-
-                        dispatch_semaphore_signal(sem)
+                    if let account = account {
+                        self.account = account
                     }
-                    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
-                }
 
-                if updateHistorical {
-                    YahooClient.historical(self.account) {
-                        dispatch_semaphore_signal(sem)
-                    }
-                    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
+                    dispatch_semaphore_signal(sem)
                 }
+                dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
             }
 
-            YahooClient.updateAccount(self.account) {
+            if updateHistorical {
+                YahooClient.historical(self.account, extraSymbols: self.extraSymbols) {
+                    dispatch_semaphore_signal(sem)
+                }
+                dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
+            }
+
+            YahooClient.updateAccount(self.account, extraSymbols: self.extraSymbols) {
                 dispatch_semaphore_signal(sem)
             }
             dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER)
@@ -210,18 +209,30 @@ extension Double {
 
 extension PortfolioViewController {
 
+    enum Section: Int {
+        case Summary = 0, Cash = 1, Position = 2, ExtraSymbol = 3
+    }
+
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
 
-        if section <= 1 {
+        if section == Section.Summary.rawValue {
             return 1
         }
 
-        return self.account.positions.count
+        if section == Section.Cash.rawValue {
+            return account == nil ? 0 : 1
+        }
+
+        if section == Section.Position.rawValue {
+            return account?.positions.count ?? 0
+        }
+
+        return extraSymbols.count
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
 
-        if indexPath.section == 0 {
+        if indexPath.section == Section.Summary.rawValue {
             let cell = tableView.dequeueReusableCellWithIdentifier("SummaryCell")! as! SummaryCell
             cell.portfolioController = self
             cell.update(account)
@@ -231,27 +242,42 @@ extension PortfolioViewController {
         let cell = tableView.dequeueReusableCellWithIdentifier("PositionCell")! as! PositionCell
         cell.portfolioController = self
         cell.expanded = indexPath == expandedIndexPath
-        cell.update(account, index: (indexPath.section == 1) ? -1 : indexPath.row)
+
+        var position: Position?
+        if indexPath.section == Section.Position.rawValue {
+            position = account?.positions[indexPath.row]
+        }
+
+        var symbol: String?
+        if indexPath.section == Section.ExtraSymbol.rawValue {
+            symbol = extraSymbols[indexPath.row]
+        }
+
+        cell.update(account, position: position, extraSymbol: symbol, index: indexPath.row)
         return cell
     }
 
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
 
-        return 3
+        return 4
     }
 
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
-        if indexPath.section == 0 {
+        if indexPath.section == Section.Summary.rawValue {
             return 296
         }
 
-        if indexPath.section == 1 {
+        if indexPath.section == Section.Cash.rawValue {
             return 35
         }
 
-        let category = self.account.positions[indexPath.row].category
-        let shouldExpand = category == .Equity || category == .Fund
+        var shouldExpand = true
+        if indexPath.section == Section.Position.rawValue {
+            let category = self.account?.positions[indexPath.row].category
+            shouldExpand = category == .Equity || category == .Fund
+        }
+
         if indexPath == expandedIndexPath && shouldExpand {
             return 230
         }
@@ -261,14 +287,23 @@ extension PortfolioViewController {
 
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
 
-        if indexPath.section == 0 {
-            return
+        if indexPath.section == Section.Summary.rawValue {
+            if self.app.credentials == nil {
+                var err: OSStatus
+                (self.app.credentials, err) = Credentials.loadFromKeyChain()
+                if err == errSecItemNotFound {
+                    self.performSegueWithIdentifier("link", sender: self)
+                }
+            }
+            else {
+                self.performSegueWithIdentifier("link", sender: self)
+            }
         }
 
         tableView.beginUpdates()
 
         expandedIndexPath = indexPath == expandedIndexPath ? nil : indexPath
-        tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
+        tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
 
         tableView.endUpdates()
 
@@ -280,6 +315,21 @@ extension PortfolioViewController {
                 tableView.scrollToRowAtIndexPath(expandedIndexPath, atScrollPosition: .Bottom, animated: true)
             }
         }
+    }
+
+    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+
+        return indexPath.section == Section.ExtraSymbol.rawValue
+    }
+
+    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+
+        if editingStyle != .Delete {
+            return
+        }
+
+        extraSymbols.removeAtIndex(indexPath.row)
+        tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
     }
 
 }

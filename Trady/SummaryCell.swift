@@ -27,14 +27,15 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
     
-    func update(account: Account) {
+    func update(account: Account?) {
+
         chartScrollView.delegate = self
 
         change.text = "-"
 
-        if let _ = app.credentials {
+        if let _ = app.credentials, account = account {
             value.text = account.value.currency
-//            value.text = "$000,000.00"
+            value.text = "$000,000.00"
 
             var text = "\(account.change > 0 ? "+" : "")\(account.change?.currency ?? "-")"
             if let changeValue = account.change {
@@ -61,7 +62,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             today.hidden = false
         }
         else {
-            value.text = "Pull to Refresh"
+            value.text = "Tap to Sync"
             change.text = "sensitive data hidden"
             change.textColor = UIColor.blackColor()
 
@@ -70,7 +71,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         }
 
         createLineChart(account)
-        if let _ = app.credentials {
+        if let _ = app.credentials, account = account {
             pieChartView.hidden = false
             chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
             createPieChart(account)
@@ -81,6 +82,9 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             chartScrollView.contentSize.width = lineChartView.frame.size.width
             pageControl.hidden = true
         }
+
+        self.separatorInset = UIEdgeInsetsZero
+        self.layoutMargins = UIEdgeInsetsZero
     }
 
     func createPieChart(account: Account) {
@@ -124,23 +128,21 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         pieChartView.data = pieChartData
     }
 
-    func createLineChart(account: Account) {
+    func createLineChart(account: Account?) {
 
         var dataSets: [LineChartDataSet] = []
         var names = [String]()
 
         var colors = [UIColor]()
 
-        if let _ = app.credentials {
-            if let historical = YahooClient.historicalData["Portfolio"] {
-                var dataEntries: [ChartDataEntry] = []
-                for (i, data) in historical.enumerate() {
-                    let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
-                    dataEntries.append(dataEntry)
-                }
-                dataSets.append(LineChartDataSet(yVals: dataEntries, label: "Portfolio"))
-                colors.append(PortfolioViewController.blue)
+        if let historical = YahooClient.historicalData[app.credentials == nil ? "^IXIC" : "Portfolio"] {
+            var dataEntries: [ChartDataEntry] = []
+            for (i, data) in historical.enumerate() {
+                let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
+                dataEntries.append(dataEntry)
             }
+            dataSets.append(LineChartDataSet(yVals: dataEntries, label:app.credentials == nil ? "NASDAQ" : "Portfolio"))
+            colors.append(PortfolioViewController.blue)
         }
 
         if let historical = YahooClient.historicalData["^GSPC"] {

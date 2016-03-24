@@ -66,9 +66,14 @@ class YahooClient {
         }
     }
 
-    static func updateAccount(account: Account, completion: () -> Void = {}) {
+    static func updateAccount(account: Account?, extraSymbols: [String] = [], completion: () -> Void = {}) {
 
-        let stocksToUpdate = account.positions.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
+        var stocksToUpdate = [String]()
+        if let account = account {
+            stocksToUpdate = account.positions.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
+        }
+        stocksToUpdate += extraSymbols
+
         let stocks = stocksToUpdate.joinWithSeparator(",")
 
         let baseURL = "https://download.finance.yahoo.com/d/quotes.csv"
@@ -109,14 +114,16 @@ class YahooClient {
                 }
             }
 
-            var change: Double = 0
-            var value: Double = 0
-            for position in account.positions {
-                change += (self.quotes[position.symbol]?.change ?? 0) * position.quantity
-                value += (position.price ?? 0) * position.quantity
+            if let account = account {
+                var change: Double = 0
+                var value: Double = 0
+                for position in account.positions {
+                    change += (self.quotes[position.symbol]?.change ?? 0) * position.quantity
+                    value += (position.price ?? 0) * position.quantity
+                }
+                account.change = change
+                account.value = value + account.cash
             }
-            account.change = change
-            account.value = value + account.cash
 
             let defaults = NSUserDefaults.standardUserDefaults()
             let data = NSKeyedArchiver.archivedDataWithRootObject(self.quotes) as NSData
@@ -128,16 +135,19 @@ class YahooClient {
         task.resume()
     }
 
-    static func historical(account:Account, completion: () -> Void = {}) {
+    static func historical(account:Account?, extraSymbols: [String] = [], completion: () -> Void = {}) {
 
         let howManyDays: NSTimeInterval = 100
 
         let dateFormatter = NSDateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
 
-        var stocksToUpdate = ["^GSPC"]
+        var stocksToUpdate = ["^GSPC", "^IXIC"]
 
-        stocksToUpdate += account.positions.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
+        if let account = account {
+            stocksToUpdate += account.positions.filter { $0.category == .Equity || $0.category == .Fund }.map{$0.symbol}
+        }
+        stocksToUpdate += extraSymbols
 
         let stocks = stocksToUpdate.map{"\"\($0)\""}.joinWithSeparator(",")
         let startDate = dateFormatter.stringFromDate(NSDate().dateByAddingTimeInterval(-howManyDays*24*60*60))
@@ -191,27 +201,33 @@ class YahooClient {
                             }
                         }
 
-                        var portfolioData = [DataPoint]()
-                        for i in 0..<historicalData["^GSPC"]!.count {
-                            var value: Double = 0
-                            let date = historicalData["^GSPC"]!.first!.date
+                        if let account = account {
+                            var portfolioData = [DataPoint]()
+                            for i in 0..<historicalData["^GSPC"]!.count {
+                                var value: Double = 0
+                                let date = historicalData["^GSPC"]!.first!.date
 
-                            for (key, var data) in historicalData {
-                                var units: Double = 0
-                                for position in account.positions {
-                                    if position.symbol == key {
-                                        units = position.quantity
-                                        break
+                                for (key, var data) in historicalData {
+                                    var units: Double = 0
+                                    for position in account.positions {
+                                        if position.symbol == key {
+                                            units = position.quantity
+                                            break
+                                        }
+                                    }
+
+                                    if data.count > i {
+                                        value += units * data[i].close
                                     }
                                 }
 
-                                value += units * data[i].close
+                                if historicalData["^GSPC"]!.count > i {
+                                    portfolioData.append(DataPoint(date: date, close: value, volume:historicalData["^GSPC"]![i].volume))
+                                }
                             }
 
-                            portfolioData.append(DataPoint(date: date, close: value, volume:historicalData["^GSPC"]![i].volume))
+                            historicalData["Portfolio"] = portfolioData
                         }
-
-                        historicalData["Portfolio"] = portfolioData
 
                         for (_, var data) in historicalData {
                             for i in 1..<data.count {
@@ -235,4 +251,22 @@ class YahooClient {
         task.resume()
     }
 
+    struct SearchResult {
+        var symbol: String
+        var name: String
+        init(symbol: String, name: String) {
+            self.symbol = symbol
+            self.name = name
+        }
+    }
+
+    static func search(string: String, completion: ([SearchResult]) -> Void) {
+        var results = [SearchResult]()
+
+        if string.characters.count > 0 {
+            let urlString = "https://d.yimg.com/autoc.finance.yahoo.com/autoc?query=\(string)&callback=YAHOO.Finance.SymbolSuggest.ssCallback"
+        }
+
+        completion(results)
+    }
 }

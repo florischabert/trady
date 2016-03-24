@@ -27,11 +27,10 @@ class PositionCell: UITableViewCell {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
 
-    func update(account: Account, index: Int) {
-
-        if index == -1 {
+    func update(account: Account?, position: Position?, extraSymbol: String?, index: Int) {
+        if position == nil && extraSymbol == nil {
             symbol.text = "Cash"
-            change.text = app.credentials == nil ? "-" : account.cash.currency
+            change.text = app.credentials == nil ? "-" : account!.cash.currency
             change.font = UIFont.systemFontOfSize(12)
             change.textColor = UIColor.blackColor()
             descr.text = ""
@@ -51,13 +50,13 @@ class PositionCell: UITableViewCell {
             return
         }
 
-        let position = account.positions[index]
+        let symbolString = position?.symbol ?? extraSymbol!
 
-        symbol.text = position.symbol
-        descr.text = YahooClient.quotes[position.symbol]?.descr ?? position.descr
+        symbol.text = symbolString
+        descr.text = YahooClient.quotes[symbolString]?.descr ?? position?.descr ?? "-"
 
-        if let price = YahooClient.quotes[position.symbol]!.price,
-            changeValue = YahooClient.quotes[position.symbol]?.change {
+        if let price = YahooClient.quotes[symbolString]?.price,
+            changeValue = YahooClient.quotes[symbolString]?.change {
             change.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (price - changeValue)))%"
             change.textColor = changeValue < 0 ? PortfolioViewController.red : PortfolioViewController.green
         }
@@ -66,28 +65,34 @@ class PositionCell: UITableViewCell {
             change.textColor = UIColor.blackColor()
         }
 
-        if position.category != .Fund && position.category != .Equity {
-            change.text = "-"
-        }
-
         details.text = ""
-        if position.category == .Fund || position.category == .Equity {
-            let price = YahooClient.quotes[position.symbol]?.price ?? position.price
-            amount.text = app.credentials == nil ? price.currency : "\(Int(position.quantity))x \(price.currency)"
+        if position == nil || position?.category == .Fund || position?.category == .Equity {
 
-            if let cap = YahooClient.quotes[position.symbol]?.cap {
+            let price = YahooClient.quotes[symbolString]?.price ?? position?.price
+            if let price = price {
+                amount.text = (app.credentials == nil || position == nil) ? price.currency : "\(Int(position!.quantity))x \(price.currency)"
+            }
+            else {
+                amount.text = "-"
+            }
+
+            if let cap = YahooClient.quotes[symbolString]?.cap {
                 details!.text! += "Market Capitalization: \(cap)"
             }
-            if let pe = YahooClient.quotes[position.symbol]?.pe {
+            if let pe = YahooClient.quotes[symbolString]?.pe {
                 details!.text! += "  |  P/E: \(pe)"
             }
         }
-        else if position.category == .Bond {
-            amount.text = (position.quantity * position.price).currency
+        else if position?.category == .Bond {
+            amount.text = (position!.quantity * position!.price).currency
+            change.text = "-"
         }
-        else if position.category == .Option {
-            amount.text = position.price.currency
+        else if position?.category == .Option {
+            amount.text = position!.price.currency
+            change.text = "-"
         }
+
+        self.contentView.alpha = extraSymbol == nil ? 1 : 0.7
 
         var lineView = contentView.viewWithTag(42)
         if lineView == nil {
@@ -96,28 +101,29 @@ class PositionCell: UITableViewCell {
             lineView!.tag = 42
             contentView.addSubview(lineView!)
         }
-        lineView!.backgroundColor = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
+        lineView!.backgroundColor = extraSymbol == nil ? PortfolioViewController.colors[index % PortfolioViewController.colors.count] : UIColor.clearColor()
 
         chart.hidden = !expanded
-        createChart(position, index: index)
-        createVolumeChart(position, index: index)
+        volumeChart.hidden = !expanded
+        details.hidden = !expanded
+
+        createChart(symbolString, index: index)
+        createVolumeChart(symbolString, index: index)
+
+        self.separatorInset = UIEdgeInsetsZero
+        self.layoutMargins = UIEdgeInsetsZero
     }
 
-    func createChart(position: Position, index: Int) {
+    func createChart(symbol: String, index: Int) {
         var names: [String] = []
         var dataEntries: [ChartDataEntry] = []
 
-        if let historical = YahooClient.historicalData[position.symbol] {
+        if let historical = YahooClient.historicalData[symbol] {
             for (i, data) in historical.enumerate() {
                 let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
                 dataEntries.append(dataEntry)
                 names.append(data.date)
             }
-        }
-        else {
-            dataEntries.append(ChartDataEntry(value: position.price, xIndex: 0))
-            dataEntries.append(ChartDataEntry(value: position.price, xIndex: 1))
-            names = ["", "Today"]
         }
 
         if names.count > 2 {
@@ -125,7 +131,7 @@ class PositionCell: UITableViewCell {
             names[names.count-2] = ""
         }
 
-        let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: position.symbol)
+        let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: symbol)
         lineChartDataSet.drawCubicEnabled = true
         lineChartDataSet.cubicIntensity = 0.1
         lineChartDataSet.lineWidth = 2.3
@@ -169,11 +175,11 @@ class PositionCell: UITableViewCell {
         chart.backgroundColor = UIColor.clearColor()
     }
 
-    func createVolumeChart(position: Position, index: Int) {
+    func createVolumeChart(symbol: String, index: Int) {
         var names: [String] = []
         var dataEntries: [ChartDataEntry] = []
 
-        if let historical = YahooClient.historicalData[position.symbol] {
+        if let historical = YahooClient.historicalData[symbol] {
             for (i, data) in historical.enumerate() {
                 let dataEntry = BarChartDataEntry(value: data.volume, xIndex: i)
                 dataEntries.append(dataEntry)
@@ -196,6 +202,6 @@ class PositionCell: UITableViewCell {
         volumeChart.drawBordersEnabled = false
         volumeChart.xAxis.enabled = false
         volumeChart.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 0)
-        volumeChart.alpha = 0.08
+        volumeChart.alpha = 0.1
     }
 }

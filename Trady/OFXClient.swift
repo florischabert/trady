@@ -197,6 +197,7 @@ class OFXClient {
             ]).toString()
 
         request(Credentials(username: username, password: password, account: ""), ofxString: ofx) { ofx in
+
             if let ofx = ofx, account = (ofx as NSDictionary).valueForKeyPath("OFX.SIGNUPMSGSRSV1.ACCTINFOTRNRS.ACCTINFORS.ACCTINFO.INVACCTINFO.INVACCTFROM.ACCTID") as? String {
                 completionHandler(credentials: Credentials(username: username, password: password, account: account))
             }

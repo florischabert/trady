@@ -34,26 +34,27 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
     }
 
     func update() {
-        dispatch_async(dispatch_get_main_queue()) {
-            self.unlinkButton.hidden = self.app.credentials == nil
-            self.account.hidden = self.app.credentials == nil
-            self.username.hidden = self.app.credentials != nil
-            self.password.hidden = self.app.credentials != nil
-            self.navigationItem.hidesBackButton = self.app.credentials == nil
+        self.unlinkButton.hidden = self.app.credentials == nil
+        self.account.hidden = self.app.credentials == nil
+        self.username.hidden = self.app.credentials != nil
+        self.password.hidden = self.app.credentials != nil
 
-            if let cred = self.app.credentials {
-                self.account.text = "Account \(cred.account)"
-            }
-            else {
-                self.username.becomeFirstResponder()
-            }
+        if let cred = self.app.credentials {
+            self.account.text = "Account \(cred.account)"
+        }
+        else {
+            self.username.becomeFirstResponder()
         }
     }
 
     @IBAction func unlink(sender: AnyObject) {
         app.credentials = nil
         Credentials.deleteFromKeyChain()
-        update()
+        NSUserDefaults.standardUserDefaults().removeObjectForKey("account")
+
+        dispatch_async(dispatch_get_main_queue()) {
+            self.update()
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -96,13 +97,13 @@ class LinkViewController: UIViewController, UITextFieldDelegate {
                 self.app.credentials = credentials
                 self.app.credentials?.saveToKeyChain()
 
-                dispatch_async(dispatch_get_main_queue()) {
+                dispatch_sync(dispatch_get_main_queue()) {
                     self.setWaitState(false)
                     self.navigationController?.popViewControllerAnimated(true)
                 }
             }
             else {
-                dispatch_async(dispatch_get_main_queue()) {
+                dispatch_sync(dispatch_get_main_queue()) {
                     self.setWaitState(false)
                     let alertController = UIAlertController(title: "Login failed", message: "Please check your credentials and try again.", preferredStyle: .Alert)
                     let OKAction = UIAlertAction(title: "OK", style: .Default) { (action) in }
