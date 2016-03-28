@@ -36,7 +36,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
 
         if let _ = app.credentials, account = account {
             value.text = account.value.currency
-            value.text = "$000,000.00"
+//            value.text = "$000,000.00"
 
             change.text = ""
             percentLabel.text = ""
@@ -89,7 +89,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         pieChartView.holeRadiusPercent = 0.38
         pieChartView.rotationEnabled = false
         pieChartView.userInteractionEnabled = false
-        pieChartView.setExtraOffsets(left: 0, top: 0, right: 0, bottom: 5)
+        pieChartView.setExtraOffsets(left: 0, top: 0, right: 0, bottom: 22)
 
         var ratios: [ChartDataEntry] = []
         var names: [String] = []
@@ -149,13 +149,19 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             set.setCircleColor(colors[i])
             set.setColor(colors[i])
         }
+
+        if names.count > 2 {
+            names[0] = ""
+            names[names.count-2] = ""
+        }
+
         let formatter = NSNumberFormatter()
         formatter.numberStyle = NSNumberFormatterStyle.PercentStyle
         formatter.locale = NSLocale.currentLocale()
 
         let lineChartData = LineChartData(xVals: names, dataSets: dataSets)
         lineChartView.data = lineChartData
-        lineChartView.legend.enabled = true
+        lineChartView.legend.enabled = false
         lineChartView.legend.position = .LeftOfChart
         lineChartView.legend.form = .Circle
         lineChartView.legend.formSize = 4
@@ -176,11 +182,12 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         lineChartView.rightAxis.enabled = false
         lineChartView.drawGridBackgroundEnabled = false
         lineChartView.drawBordersEnabled = false
-        lineChartView.xAxis.enabled = true
+        lineChartView.xAxis.enabled = false
         lineChartView.xAxis.drawGridLinesEnabled = false
         lineChartView.xAxis.drawAxisLineEnabled = false
+        lineChartView.xAxis.labelFont = UIFont.systemFontOfSize(8)
         lineChartView.xAxis.labelPosition = .Bottom
-        lineChartView.setViewPortOffsets(left: 0, top: 20, right: 0, bottom: 25)
+        lineChartView.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 22)
         lineChartView.leftAxis.startAtZeroEnabled = false
     }
 

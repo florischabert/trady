@@ -8,6 +8,7 @@
 
 import UIKit
 import Charts
+import SCLAlertView
 
 class PortfolioViewController: UITableViewController {
 
@@ -111,7 +112,7 @@ class PortfolioViewController: UITableViewController {
 
         (self.app.credentials, _) = Credentials.loadFromKeyChain()
 
-        tableView.setContentOffset(CGPointMake(0, -20), animated: true)
+        tableView.setContentOffset(CGPointMake(0, -20), animated: false)
 
         refresh(self)
     }
@@ -255,7 +256,7 @@ extension PortfolioViewController: UISearchBarDelegate {
 extension PortfolioViewController {
 
     enum Section: Int {
-        case Summary = 0, Cash = 1, Position = 2, ExtraSymbol = 3
+        case Summary = 0, Position = 1, Cash = 2, ExtraSymbol = 3
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -395,11 +396,26 @@ extension PortfolioViewController {
                 var err: OSStatus
                 (self.app.credentials, err) = Credentials.loadFromKeyChain()
                 if err == errSecItemNotFound {
-                    self.performSegueWithIdentifier("link", sender: self)
+                    self.presentViewController(LoginController(), animated: true) {}
+                    return
                 }
             }
             else {
-                self.performSegueWithIdentifier("link", sender: self)
+                let alert = UIAlertController(title: "Accound synced", message: "Trady in synced with your E*Trade account \(app.credentials!.account).", preferredStyle: .Alert)
+                let unlinkAction = UIAlertAction(title: "Unlink", style: .Destructive) { (action) in
+                    self.app.credentials = nil
+                    Credentials.deleteFromKeyChain()
+                    self.account = nil
+                    NSUserDefaults.standardUserDefaults().removeObjectForKey("account")
+
+                    dispatch_async(dispatch_get_main_queue()) {
+                        self.tableView.reloadData()
+                    }
+                }
+                alert.addAction(unlinkAction)
+                let okAction = UIAlertAction(title: "OK", style: .Default) { (action) in }
+                alert.addAction(okAction)
+                self.presentViewController(alert, animated: true) {}
             }
         }
 
@@ -442,3 +458,50 @@ extension PortfolioViewController {
 
 }
 
+extension PortfolioViewController {
+
+    func LoginController() -> UIAlertController {
+        let alertController = UIAlertController(title: "Link account", message: "Sync with your E*Trade account.\nTrady can only see your trading portfolio.", preferredStyle: .Alert)
+
+        let loginAction = UIAlertAction(title: "Login", style: .Default) { (_) in
+            let loginTextField = alertController.textFields![0] as UITextField
+            let passwordTextField = alertController.textFields![1] as UITextField
+
+            self.app.ofx.login(loginTextField.text!, passwordTextField.text!) { credentials in
+                if let credentials = credentials {
+                    self.app.credentials = credentials
+                    self.app.credentials?.saveToKeyChain()
+                    self.lastUpdated = nil
+                    self.refresh(self)
+                }
+                else {
+                    dispatch_sync(dispatch_get_main_queue()) {
+                        let alertController = UIAlertController(title: "Login failed", message: "Please check your credentials and try again.", preferredStyle: .Alert)
+                        let OKAction = UIAlertAction(title: "OK", style: .Default) { (action) in }
+                        alertController.addAction(OKAction)
+                        self.presentViewController(alertController, animated: true) {}
+                    }
+                }
+            }
+        }
+        loginAction.enabled = false
+
+        alertController.addTextFieldWithConfigurationHandler { (textField) in
+            textField.placeholder = "Username"
+
+            NSNotificationCenter.defaultCenter().addObserverForName(UITextFieldTextDidChangeNotification, object: textField, queue: NSOperationQueue.mainQueue()) { (notification) in
+                loginAction.enabled = textField.text != ""
+            }
+        }
+
+        alertController.addTextFieldWithConfigurationHandler { (textField) in
+            textField.placeholder = "Password"
+            textField.secureTextEntry = true
+        }
+
+        alertController.addAction(loginAction)
+
+        return alertController
+    }
+
+}

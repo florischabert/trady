@@ -41,7 +41,7 @@ class PositionCell: UITableViewCell {
             var lineView = contentView.viewWithTag(42)
             if lineView == nil {
                 lineView = UIView()
-                lineView!.frame = CGRect(x: 0, y: 0, width: 5, height: 55)
+                lineView!.frame = CGRect(x: 0, y: 0, width: 3, height: 55)
                 lineView!.tag = 42
                 contentView.addSubview(lineView!)
             }
@@ -99,11 +99,11 @@ class PositionCell: UITableViewCell {
         var lineView = contentView.viewWithTag(42)
         if lineView == nil {
             lineView = UIView()
-            lineView!.frame = CGRect(x: 0, y: 0, width: 5, height: 55)
+            lineView!.frame = CGRect(x: 0, y: 0, width: 3, height: 55)
             lineView!.tag = 42
             contentView.addSubview(lineView!)
         }
-        lineView!.backgroundColor = UIColor.clearColor()
+        lineView!.backgroundColor = change.textColor
         if portfolioController!.summaryPie {
             lineView!.backgroundColor = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
         }
