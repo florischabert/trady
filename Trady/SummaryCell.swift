@@ -15,6 +15,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
     @IBOutlet weak var change: UILabel!
     @IBOutlet weak var portfolio: UILabel!
     @IBOutlet weak var today: UILabel!
+    @IBOutlet weak var percentLabel: UILabel!
 
     @IBOutlet weak var chartScrollView: UIScrollView!
     @IBOutlet weak var pieChartView: PieChartView!
@@ -37,17 +38,11 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             value.text = account.value.currency
             value.text = "$000,000.00"
 
-            var text = "\(account.change > 0 ? "+" : "")\(account.change?.currency ?? "-")"
+            change.text = ""
+            percentLabel.text = ""
             if let changeValue = account.change {
-                text += " \(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (account.value - changeValue)))%"
-
-                change.text = text
-                
-                let attributedText = NSMutableAttributedString(attributedString: change.attributedText!)
-                let start = change.text!.startIndex.distanceTo(change.text!.rangeOfString(" ")!.endIndex)
-                let length = change.text!.rangeOfString(" ")!.endIndex.distanceTo(change.text!.endIndex)
-                attributedText.setAttributes([NSFontAttributeName: UIFont.boldSystemFontOfSize(change.font.pointSize)], range: NSMakeRange(start, length))
-                change.attributedText = attributedText
+                change.text = "\(account.change > 0 ? "+" : "")\(account.change?.currency ?? "-")"
+                percentLabel.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (account.value - changeValue)))%"
             }
 
             change.textColor = UIColor.blackColor()
@@ -57,6 +52,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             else {
                 change.textColor = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
             }
+            percentLabel.textColor = change.textColor
 
             portfolio.hidden = false
             today.hidden = false
@@ -70,21 +66,15 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             today.hidden = true
         }
 
-        createLineChart(account)
         if let _ = app.credentials, account = account {
-            pieChartView.hidden = false
             chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
+            createLineChart(account)
             createPieChart(account)
             pageControl.hidden = false
         }
         else {
-            pieChartView.hidden = true
-            chartScrollView.contentSize.width = lineChartView.frame.size.width
             pageControl.hidden = true
         }
-
-        self.separatorInset = UIEdgeInsetsZero
-        self.layoutMargins = UIEdgeInsetsZero
     }
 
     func createPieChart(account: Account) {
@@ -140,20 +130,10 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
             for (i, data) in historical.enumerate() {
                 let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
                 dataEntries.append(dataEntry)
+                names.append(data.date)
             }
             dataSets.append(LineChartDataSet(yVals: dataEntries, label:app.credentials == nil ? "NASDAQ" : "Portfolio"))
             colors.append(PortfolioViewController.blue)
-        }
-
-        if let historical = YahooClient.historicalData["^GSPC"] {
-            var dataEntries: [ChartDataEntry] = []
-            for (i, data) in historical.enumerate() {
-                let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
-                dataEntries.append(dataEntry)
-                names.append(data.date)
-            }
-            dataSets.append(LineChartDataSet(yVals: dataEntries, label: "S&P 500"))
-            colors.append(PortfolioViewController.red)
         }
 
         for (i, set) in dataSets.enumerate() {
@@ -198,12 +178,14 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         lineChartView.xAxis.drawGridLinesEnabled = false
         lineChartView.xAxis.drawAxisLineEnabled = false
         lineChartView.xAxis.labelPosition = .Bottom
-        lineChartView.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 5)
+        lineChartView.setViewPortOffsets(left: 0, top: 20, right: 0, bottom: 25)
         lineChartView.leftAxis.startAtZeroEnabled = false
     }
 
     func scrollViewDidScroll(scrollView: UIScrollView) {
         pageControl.currentPage = Int(scrollView.contentOffset.x) / Int(scrollView.frame.size.width / 2)
+        portfolioController?.summaryPie = pageControl.currentPage == 1
+        portfolioController?.tableView.reloadData()
     }
     
 }

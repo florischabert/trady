@@ -45,7 +45,9 @@ class PositionCell: UITableViewCell {
                 lineView!.tag = 42
                 contentView.addSubview(lineView!)
             }
-            lineView!.backgroundColor = PortfolioViewController.green
+            lineView!.backgroundColor = UIColor.clearColor()
+
+            self.contentView.alpha = 1
 
             return
         }
@@ -62,7 +64,7 @@ class PositionCell: UITableViewCell {
         }
         else {
             change.text = ""
-            change.textColor = UIColor.blackColor()
+            change.textColor = UIColor.clearColor()
         }
 
         details.text = ""
@@ -92,7 +94,7 @@ class PositionCell: UITableViewCell {
             change.text = "-"
         }
 
-        self.contentView.alpha = extraSymbol == nil ? 1 : 0.7
+        self.contentView.alpha = extraSymbol != nil ? 0.6 : 1
 
         var lineView = contentView.viewWithTag(42)
         if lineView == nil {
@@ -101,7 +103,13 @@ class PositionCell: UITableViewCell {
             lineView!.tag = 42
             contentView.addSubview(lineView!)
         }
-        lineView!.backgroundColor = extraSymbol == nil ? PortfolioViewController.colors[index % PortfolioViewController.colors.count] : UIColor.clearColor()
+        lineView!.backgroundColor = UIColor.clearColor()
+        if portfolioController!.summaryPie {
+            lineView!.backgroundColor = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
+        }
+        if extraSymbol != nil {
+            lineView!.backgroundColor = UIColor.clearColor()
+        }
 
         chart.hidden = !expanded
         volumeChart.hidden = !expanded
@@ -109,9 +117,6 @@ class PositionCell: UITableViewCell {
 
         createChart(symbolString, index: index)
         createVolumeChart(symbolString, index: index)
-
-        self.separatorInset = UIEdgeInsetsZero
-        self.layoutMargins = UIEdgeInsetsZero
     }
 
     func createChart(symbol: String, index: Int) {
@@ -131,13 +136,18 @@ class PositionCell: UITableViewCell {
             names[names.count-2] = ""
         }
 
+        var color = change.textColor
+        if portfolioController!.summaryPie {
+            color = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
+        }
+
         let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: symbol)
         lineChartDataSet.drawCubicEnabled = true
         lineChartDataSet.cubicIntensity = 0.1
         lineChartDataSet.lineWidth = 2.3
         lineChartDataSet.drawHorizontalHighlightIndicatorEnabled = false
-        lineChartDataSet.setCircleColor(PortfolioViewController.colors[index % PortfolioViewController.colors.count])
-        lineChartDataSet.setColor(PortfolioViewController.colors[index % PortfolioViewController.colors.count])
+        lineChartDataSet.setCircleColor(color)
+        lineChartDataSet.setColor(color)
         lineChartDataSet.drawCirclesEnabled = false
         lineChartDataSet.drawValuesEnabled = false
         lineChartDataSet.valueFont = UIFont.systemFontOfSize(8)
@@ -187,9 +197,14 @@ class PositionCell: UITableViewCell {
             }
         }
 
+        var color = change.textColor
+        if portfolioController!.summaryPie {
+            color = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
+        }
+        
         let barChartDataSet = BarChartDataSet(yVals: dataEntries, label: nil)
         barChartDataSet.drawValuesEnabled = false
-        barChartDataSet.setColor(PortfolioViewController.colors[index % PortfolioViewController.colors.count])
+        barChartDataSet.setColor(color)
 
         let barChartData = BarChartData(xVals: names, dataSet: barChartDataSet)
         volumeChart.data = barChartData

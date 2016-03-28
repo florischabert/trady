@@ -252,8 +252,8 @@ class YahooClient {
     }
 
     struct SearchResult {
-        var symbol: String
-        var name: String
+        var symbol: String = ""
+        var name: String = ""
         init(symbol: String, name: String) {
             self.symbol = symbol
             self.name = name
@@ -263,10 +263,45 @@ class YahooClient {
     static func search(string: String, completion: ([SearchResult]) -> Void) {
         var results = [SearchResult]()
 
-        if string.characters.count > 0 {
-            let urlString = "https://d.yimg.com/autoc.finance.yahoo.com/autoc?query=\(string)&callback=YAHOO.Finance.SymbolSuggest.ssCallback"
-        }
+        let urlString = "http://d.yimg.com/aq/autoc?query=\(string)&region=US&lang=en-US"
 
-        completion(results)
+        let urlRequest = NSURLRequest(URL: NSURL(string: urlString)!, cachePolicy: .ReloadIgnoringLocalAndRemoteCacheData, timeoutInterval: 1)
+
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(urlRequest) {
+            data, response, error in
+
+            guard error == nil && data != nil else {
+                completion(results)
+                return
+            }
+
+            if let httpStatus = response as? NSHTTPURLResponse where httpStatus.statusCode != 200 {
+                completion(results)
+                return
+            }
+
+            do {
+                if let json = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments) as? NSDictionary {
+
+                    if let entries = json["ResultSet"]?["Result"] as? NSArray {
+                        for entry in entries {
+                            if entry["type"] as? String != "S" {
+                                continue
+                            }
+
+                            if let symbol = entry["symbol"] as? String, name = entry["name"] as? String {
+                                let result = SearchResult(symbol: symbol, name: name)
+                                results.append(result)
+                            }
+                        }
+                    }
+                }
+            }
+            catch {}
+
+            completion(results)
+        }
+        task.resume()
     }
+
 }

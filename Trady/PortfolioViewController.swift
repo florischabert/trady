@@ -18,6 +18,9 @@ class PortfolioViewController: UITableViewController {
     static let green = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
     static let colors = [blue, red, brown, yellow, green]
 
+    @IBOutlet weak var searchBar: UISearchBar!
+    var searchResults: [YahooClient.SearchResult]?
+
     var account: Account?
 
     var extraSymbols = ["AAPL", "GOOG", "QQQ", "SPY", "TSLA", "YHOO"]
@@ -31,6 +34,8 @@ class PortfolioViewController: UITableViewController {
     var timer: dispatch_source_t?
 
     var hideStatusBar = false
+
+    var summaryPie = false
 
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
@@ -72,13 +77,15 @@ class PortfolioViewController: UITableViewController {
         titleLabelView.text = "Potfolio"
         navigationItem.titleView = titleLabelView;
 
+        searchBar.delegate = self
+
         tableView.allowsSelectionDuringEditing = false
 
         refreshControl = UIRefreshControl()
-        refreshControl?.addTarget(self, action: "refresh:", forControlEvents: UIControlEvents.ValueChanged)
+        refreshControl?.addTarget(self, action: #selector(PortfolioViewController.refresh(_:)), forControlEvents: UIControlEvents.ValueChanged)
 
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidEnterBackground:"), name:UIApplicationDidEnterBackgroundNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: Selector("applicationDidBecomeActive:"), name:UIApplicationDidBecomeActiveNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(UIApplicationDelegate.applicationDidEnterBackground(_:)), name:UIApplicationDidEnterBackgroundNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(UIApplicationDelegate.applicationDidBecomeActive(_:)), name:UIApplicationDidBecomeActiveNotification, object: nil)
 
         if let data = NSUserDefaults.standardUserDefaults().objectForKey("account") as? NSData {
             account = NSKeyedUnarchiver.unarchiveObjectWithData(data) as? Account
@@ -104,6 +111,8 @@ class PortfolioViewController: UITableViewController {
 
         (self.app.credentials, _) = Credentials.loadFromKeyChain()
 
+        tableView.setContentOffset(CGPointMake(0, -20), animated: true)
+
         refresh(self)
     }
 
@@ -113,11 +122,6 @@ class PortfolioViewController: UITableViewController {
         backgrounded = true
         dispatch_suspend(timer!)
         account?.save()
-
-        let defaults = NSUserDefaults.standardUserDefaults()
-        let data = NSKeyedArchiver.archivedDataWithRootObject(extraSymbols) as NSData
-        defaults.removeObjectForKey("extraSymbols")
-        defaults.setObject(data, forKey: "extraSymbols")
     }
 
     func applicationDidBecomeActive(sender: AnyObject) {
@@ -169,10 +173,21 @@ class PortfolioViewController: UITableViewController {
 
             if updateOFX {
                 self.app.ofx.getAccount(self.app.credentials!) { account in
-                    print(account)
 
                     if let account = account {
                         self.account = account
+                        account.save()
+
+                        for position in account.positions {
+                            if let index = self.extraSymbols.indexOf(position.symbol) {
+                                self.extraSymbols.removeAtIndex(index)
+                            }
+                        }
+
+                        let defaults = NSUserDefaults.standardUserDefaults()
+                        let data = NSKeyedArchiver.archivedDataWithRootObject(self.extraSymbols) as NSData
+                        defaults.removeObjectForKey("extraSymbols")
+                        defaults.setObject(data, forKey: "extraSymbols")
                     }
 
                     dispatch_semaphore_signal(sem)
@@ -207,6 +222,35 @@ extension Double {
     }
 }
 
+extension PortfolioViewController: UISearchBarDelegate {
+
+    func dismissSearch() {
+        self.searchResults = nil
+        dispatch_async(dispatch_get_main_queue()) {
+            self.tableView.reloadData()
+            self.searchBar.endEditing(true)
+            self.searchBar.text = ""
+            self.searchBar.resignFirstResponder()
+            self.tableView.setContentOffset(CGPointMake(0, -20), animated: true)
+        }
+    }
+
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.characters.count == 0 {
+            dismissSearch()
+            return
+        }
+
+        YahooClient.search(searchText, completion: { results in
+            self.searchResults = results
+            dispatch_sync(dispatch_get_main_queue()) {
+                self.tableView.reloadData()
+            }
+        })
+    }
+
+}
+
 extension PortfolioViewController {
 
     enum Section: Int {
@@ -214,6 +258,10 @@ extension PortfolioViewController {
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+        if let searchResults = searchResults {
+            return searchResults.count
+        }
 
         if section == Section.Summary.rawValue {
             return 1
@@ -231,6 +279,13 @@ extension PortfolioViewController {
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+
+        if let searchResults = searchResults {
+            let cell = tableView.dequeueReusableCellWithIdentifier("SearchCell")!
+            cell.textLabel!.text = searchResults[indexPath.row].symbol
+            cell.detailTextLabel!.text = searchResults[indexPath.row].name
+            return cell
+        }
 
         if indexPath.section == Section.Summary.rawValue {
             let cell = tableView.dequeueReusableCellWithIdentifier("SummaryCell")! as! SummaryCell
@@ -259,13 +314,21 @@ extension PortfolioViewController {
 
     override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
 
+        if let _ = searchResults {
+            return 1
+        }
+        
         return 4
     }
 
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
+        if let _ = searchResults {
+            return 55
+        }
+
         if indexPath.section == Section.Summary.rawValue {
-            return 296
+            return 270
         }
 
         if indexPath.section == Section.Cash.rawValue {
@@ -286,6 +349,37 @@ extension PortfolioViewController {
     }
 
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+
+        if let searchResults = searchResults {
+            let result = searchResults[indexPath.row]
+            var shouldAdd = true
+
+            if let account = account {
+                for position in account.positions {
+                    if result.symbol == position.symbol {
+                        shouldAdd = false
+                        break
+                    }
+                }
+            }
+
+            for extraSymbol in extraSymbols {
+                if result.symbol == extraSymbol {
+                    shouldAdd = false
+                    break
+                }
+            }
+
+            if shouldAdd {
+                extraSymbols.append(result.symbol)
+                extraSymbols.sortInPlace()
+            }
+
+            dismissSearch()
+            refresh(self)
+
+            return
+        }
 
         if indexPath.section == Section.Summary.rawValue {
             if self.app.credentials == nil {

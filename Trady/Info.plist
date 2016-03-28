@@ -30,6 +30,11 @@
 	<dict>
 		<key>NSExceptionDomains</key>
 		<dict>
+			<key>d.yimg.com</key>
+			<dict>
+				<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
 			<key>etws.etrade.com</key>
 			<dict>
 				<key>NSExceptionRequiresForwardSecrecy</key>
