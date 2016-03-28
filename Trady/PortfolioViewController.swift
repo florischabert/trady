@@ -160,6 +160,7 @@ class PortfolioViewController: UITableViewController {
             let completion = {
                 dispatch_sync(dispatch_get_main_queue()) {
                     self.refreshControl?.endRefreshing()
+                    self.tableView.reloadSections(NSIndexSet(index: Section.Summary.rawValue), withRowAnimation: .Automatic)
                     self.tableView.reloadData()
                     self.animateTitle()
                 }
@@ -328,7 +329,10 @@ extension PortfolioViewController {
         }
 
         if indexPath.section == Section.Summary.rawValue {
-            return 270
+            if let _ = app.credentials, _ = account {
+                return 270
+            }
+            return 75
         }
 
         if indexPath.section == Section.Cash.rawValue {
@@ -373,6 +377,11 @@ extension PortfolioViewController {
             if shouldAdd {
                 extraSymbols.append(result.symbol)
                 extraSymbols.sortInPlace()
+
+                let defaults = NSUserDefaults.standardUserDefaults()
+                let data = NSKeyedArchiver.archivedDataWithRootObject(self.extraSymbols) as NSData
+                defaults.removeObjectForKey("extraSymbols")
+                defaults.setObject(data, forKey: "extraSymbols")
             }
 
             dismissSearch()
@@ -423,6 +432,11 @@ extension PortfolioViewController {
         }
 
         extraSymbols.removeAtIndex(indexPath.row)
+        let defaults = NSUserDefaults.standardUserDefaults()
+        let data = NSKeyedArchiver.archivedDataWithRootObject(self.extraSymbols) as NSData
+        defaults.removeObjectForKey("extraSymbols")
+        defaults.setObject(data, forKey: "extraSymbols")
+
         tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Automatic)
     }
 

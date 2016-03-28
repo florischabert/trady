@@ -167,7 +167,7 @@ class PositionCell: UITableViewCell {
         chart.leftAxis.valueFormatter = formatter
         chart.leftAxis.labelFont = UIFont.systemFontOfSize(8)
         chart.leftAxis.drawTopYLabelEntryEnabled = false
-        chart.leftAxis.setLabelCount(2, force: false)
+        chart.leftAxis.setLabelCount(2, force: true)
         chart.leftAxis.labelPosition = .InsideChart
         chart.leftAxis.drawLimitLinesBehindDataEnabled = false
         chart.leftAxis.drawGridLinesEnabled = false

@@ -67,12 +67,14 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         }
 
         if let _ = app.credentials, account = account {
+            chartScrollView.hidden = false
             chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
             createLineChart(account)
             createPieChart(account)
             pageControl.hidden = false
         }
         else {
+            chartScrollView.hidden = true
             pageControl.hidden = true
         }
     }
@@ -125,14 +127,14 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
 
         var colors = [UIColor]()
 
-        if let historical = YahooClient.historicalData[app.credentials == nil ? "^IXIC" : "Portfolio"] {
+        if let historical = YahooClient.historicalData["Portfolio"] {
             var dataEntries: [ChartDataEntry] = []
             for (i, data) in historical.enumerate() {
                 let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
                 dataEntries.append(dataEntry)
                 names.append(data.date)
             }
-            dataSets.append(LineChartDataSet(yVals: dataEntries, label:app.credentials == nil ? "NASDAQ" : "Portfolio"))
+            dataSets.append(LineChartDataSet(yVals: dataEntries, label:"Portfolio"))
             colors.append(PortfolioViewController.blue)
         }
 
@@ -165,7 +167,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         lineChartView.leftAxis.valueFormatter = formatter
         lineChartView.leftAxis.labelFont = UIFont.systemFontOfSize(8)
         lineChartView.leftAxis.drawTopYLabelEntryEnabled = false
-        lineChartView.leftAxis.setLabelCount(2, force: false)
+        lineChartView.leftAxis.setLabelCount(2, force: true)
         lineChartView.leftAxis.labelPosition = .InsideChart
         lineChartView.leftAxis.drawLimitLinesBehindDataEnabled = false
         lineChartView.leftAxis.drawGridLinesEnabled = false
@@ -174,7 +176,7 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         lineChartView.rightAxis.enabled = false
         lineChartView.drawGridBackgroundEnabled = false
         lineChartView.drawBordersEnabled = false
-        lineChartView.xAxis.enabled = false
+        lineChartView.xAxis.enabled = true
         lineChartView.xAxis.drawGridLinesEnabled = false
         lineChartView.xAxis.drawAxisLineEnabled = false
         lineChartView.xAxis.labelPosition = .Bottom
