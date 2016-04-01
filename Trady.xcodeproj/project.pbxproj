@@ -51,27 +51,6 @@
 			remoteGlobalIDString = 06AEE7A21BDC3F8B009875AE;
 			remoteInfo = ChartsTests;
 		};
-		9D9CA92A1CA99A3F00E313F2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9D9CA9251CA99A3F00E313F2 /* SCLAlertView.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 70264EF71B0F588700B32B18;
-			remoteInfo = SCLAlertView;
-		};
-		9D9CA92C1CA99A3F00E313F2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9D9CA9251CA99A3F00E313F2 /* SCLAlertView.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 70264F021B0F588800B32B18;
-			remoteInfo = SCLAlertViewTests;
-		};
-		9D9CA92E1CA99A6C00E313F2 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 9D9CA9251CA99A3F00E313F2 /* SCLAlertView.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 70264EF61B0F588700B32B18;
-			remoteInfo = SCLAlertView;
-		};
 		9D9CA9301CA99A6F00E313F2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 9D9CA90C1CA99A1800E313F2 /* Charts.xcodeproj */;
@@ -113,7 +92,6 @@
 		9D9BC98D1C644197005F11FC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9D9BC98F1C644197005F11FC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9D9CA90C1CA99A1800E313F2 /* Charts.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Charts.xcodeproj; path = Deps/Charts/Charts/Charts.xcodeproj; sourceTree = "<group>"; };
-		9D9CA9251CA99A3F00E313F2 /* SCLAlertView.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SCLAlertView.xcodeproj; path = Deps/SCLAlertView/SCLAlertView.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -213,19 +191,9 @@
 		9D9CA91B1CA99A1F00E313F2 /* Deps */ = {
 			isa = PBXGroup;
 			children = (
-				9D9CA9251CA99A3F00E313F2 /* SCLAlertView.xcodeproj */,
 				9D9CA90C1CA99A1800E313F2 /* Charts.xcodeproj */,
 			);
 			name = Deps;
-			sourceTree = "<group>";
-		};
-		9D9CA9261CA99A3F00E313F2 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				9D9CA92B1CA99A3F00E313F2 /* SCLAlertView.framework */,
-				9D9CA92D1CA99A3F00E313F2 /* SCLAlertViewTests.xctest */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -244,7 +212,6 @@
 			);
 			dependencies = (
 				9D9CA9311CA99A6F00E313F2 /* PBXTargetDependency */,
-				9D9CA92F1CA99A6C00E313F2 /* PBXTargetDependency */,
 			);
 			name = Trady;
 			productName = Trady;
@@ -283,10 +250,6 @@
 					ProductGroup = 9D9CA90D1CA99A1800E313F2 /* Products */;
 					ProjectRef = 9D9CA90C1CA99A1800E313F2 /* Charts.xcodeproj */;
 				},
-				{
-					ProductGroup = 9D9CA9261CA99A3F00E313F2 /* Products */;
-					ProjectRef = 9D9CA9251CA99A3F00E313F2 /* SCLAlertView.xcodeproj */;
-				},
 			);
 			projectRoot = "";
 			targets = (
@@ -324,20 +287,6 @@
 			remoteRef = 9D9CA9191CA99A1800E313F2 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		9D9CA92B1CA99A3F00E313F2 /* SCLAlertView.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = SCLAlertView.framework;
-			remoteRef = 9D9CA92A1CA99A3F00E313F2 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		9D9CA92D1CA99A3F00E313F2 /* SCLAlertViewTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = SCLAlertViewTests.xctest;
-			remoteRef = 9D9CA92C1CA99A3F00E313F2 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
@@ -373,11 +322,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		9D9CA92F1CA99A6C00E313F2 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = SCLAlertView;
-			targetProxy = 9D9CA92E1CA99A6C00E313F2 /* PBXContainerItemProxy */;
-		};
 		9D9CA9311CA99A6F00E313F2 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = "Charts-iOS";

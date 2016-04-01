@@ -8,7 +8,6 @@
 
 import UIKit
 import Charts
-import SCLAlertView
 
 class PortfolioViewController: UITableViewController {
 
@@ -35,8 +34,6 @@ class PortfolioViewController: UITableViewController {
     var timer: dispatch_source_t?
 
     var hideStatusBar = false
-
-    var summaryPie = false
 
     var app: AppDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
@@ -110,7 +107,7 @@ class PortfolioViewController: UITableViewController {
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
 
-        (self.app.credentials, _) = Credentials.loadFromKeyChain()
+        login()
 
         tableView.setContentOffset(CGPointMake(0, -20), animated: false)
 
@@ -130,6 +127,15 @@ class PortfolioViewController: UITableViewController {
             refresh(self)
             backgrounded = false
             dispatch_resume(timer!)
+            login()
+        }
+    }
+
+    func login() {
+        var err: OSStatus
+        (self.app.credentials, err) = Credentials.loadFromKeyChain()
+        if err == errSecItemNotFound {
+            self.presentViewController(LoginController(), animated: true) {}
         }
     }
 
@@ -164,6 +170,7 @@ class PortfolioViewController: UITableViewController {
                     self.tableView.reloadSections(NSIndexSet(index: Section.Summary.rawValue), withRowAnimation: .Automatic)
                     self.tableView.reloadData()
                     self.animateTitle()
+                    self.tableView.setContentOffset(CGPointMake(0, -20), animated: false)
                 }
             }
 
@@ -256,7 +263,16 @@ extension PortfolioViewController: UISearchBarDelegate {
 extension PortfolioViewController {
 
     enum Section: Int {
-        case Summary = 0, Position = 1, Cash = 2, ExtraSymbol = 3
+        case Summary = 0, Position = 1, ExtraSymbol = 2
+    }
+
+    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+
+        if let _ = searchResults {
+            return 1
+        }
+
+        return 3
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -266,11 +282,7 @@ extension PortfolioViewController {
         }
 
         if section == Section.Summary.rawValue {
-            return 1
-        }
-
-        if section == Section.Cash.rawValue {
-            return account == nil ? 0 : 1
+            return app.credentials == nil ? 0 : 1
         }
 
         if section == Section.Position.rawValue {
@@ -314,34 +326,20 @@ extension PortfolioViewController {
         return cell
     }
 
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-
-        if let _ = searchResults {
-            return 1
-        }
-        
-        return 4
-    }
-
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+
+        let section = app.credentials == nil ? indexPath.section + 1 : indexPath.section
 
         if let _ = searchResults {
             return 55
         }
 
-        if indexPath.section == Section.Summary.rawValue {
-            if let _ = app.credentials, _ = account {
-                return 270
-            }
-            return 75
-        }
-
-        if indexPath.section == Section.Cash.rawValue {
-            return 35
+        if section == Section.Summary.rawValue {
+            return 280
         }
 
         var shouldExpand = true
-        if indexPath.section == Section.Position.rawValue {
+        if section == Section.Position.rawValue {
             let category = self.account?.positions[indexPath.row].category
             shouldExpand = category == .Equity || category == .Fund
         }
@@ -392,15 +390,7 @@ extension PortfolioViewController {
         }
 
         if indexPath.section == Section.Summary.rawValue {
-            if self.app.credentials == nil {
-                var err: OSStatus
-                (self.app.credentials, err) = Credentials.loadFromKeyChain()
-                if err == errSecItemNotFound {
-                    self.presentViewController(LoginController(), animated: true) {}
-                    return
-                }
-            }
-            else {
+            if let _ = self.app.credentials {
                 let alert = UIAlertController(title: "Accound synced", message: "Trady in synced with your E*Trade account \(app.credentials!.account).", preferredStyle: .Alert)
                 let unlinkAction = UIAlertAction(title: "Unlink", style: .Destructive) { (action) in
                     self.app.credentials = nil

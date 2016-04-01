@@ -1,6 +1,3 @@
-[submodule "Deps/SCLAlertView"]
-	path = Deps/SCLAlertView
-	url = https://github.com/vikmeup/SCLAlertView-Swift.git
 [submodule "Deps/Charts"]
 	path = Deps/Charts
 	url = https://github.com/danielgindi/ios-charts.git

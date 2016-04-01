@@ -28,29 +28,6 @@ class PositionCell: UITableViewCell {
     }
 
     func update(account: Account?, position: Position?, extraSymbol: String?, index: Int) {
-        if position == nil && extraSymbol == nil {
-            symbol.text = "Cash"
-            change.text = app.credentials == nil ? "-" : account!.cash.currency
-            change.font = UIFont.systemFontOfSize(12)
-            change.textColor = UIColor.blackColor()
-            descr.text = ""
-            amount.text = ""
-
-            chart.hidden = true
-
-            var lineView = contentView.viewWithTag(42)
-            if lineView == nil {
-                lineView = UIView()
-                lineView!.frame = CGRect(x: 0, y: 0, width: 3, height: 55)
-                lineView!.tag = 42
-                contentView.addSubview(lineView!)
-            }
-            lineView!.backgroundColor = UIColor.clearColor()
-
-            self.contentView.alpha = 1
-
-            return
-        }
 
         let symbolString = position?.symbol ?? extraSymbol!
 
@@ -99,14 +76,12 @@ class PositionCell: UITableViewCell {
         var lineView = contentView.viewWithTag(42)
         if lineView == nil {
             lineView = UIView()
-            lineView!.frame = CGRect(x: 0, y: 0, width: 3, height: 55)
+            lineView!.frame = CGRect(x: 0, y: 0, width: 3, height: 54)
             lineView!.tag = 42
             contentView.addSubview(lineView!)
         }
-        lineView!.backgroundColor = change.textColor
-        if portfolioController!.summaryPie {
-            lineView!.backgroundColor = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
-        }
+        lineView!.backgroundColor = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
+
         if extraSymbol != nil {
             lineView!.backgroundColor = UIColor.clearColor()
         }
@@ -137,9 +112,7 @@ class PositionCell: UITableViewCell {
         }
 
         var color = change.textColor
-        if portfolioController!.summaryPie {
-            color = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
-        }
+        color = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
 
         let lineChartDataSet = LineChartDataSet(yVals: dataEntries, label: symbol)
         lineChartDataSet.drawCubicEnabled = true
@@ -197,11 +170,8 @@ class PositionCell: UITableViewCell {
             }
         }
 
-        var color = change.textColor
-        if portfolioController!.summaryPie {
-            color = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
-        }
-        
+        let color = PortfolioViewController.colors[index % PortfolioViewController.colors.count]
+
         let barChartDataSet = BarChartDataSet(yVals: dataEntries, label: nil)
         barChartDataSet.drawValuesEnabled = false
         barChartDataSet.setColor(color)

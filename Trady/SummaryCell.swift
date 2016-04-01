@@ -9,19 +9,11 @@
 import Charts
 import UIKit
 
-class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
+class SummaryCell: UITableViewCell, ChartViewDelegate {
 
-    @IBOutlet weak var value: UILabel!
-    @IBOutlet weak var change: UILabel!
-    @IBOutlet weak var portfolio: UILabel!
-    @IBOutlet weak var today: UILabel!
-    @IBOutlet weak var percentLabel: UILabel!
-
-    @IBOutlet weak var chartScrollView: UIScrollView!
+    @IBOutlet weak var textView: UITextView!
     @IBOutlet weak var pieChartView: PieChartView!
-    @IBOutlet weak var lineChartView: LineChartView!
-    @IBOutlet weak var pageControl: UIPageControl!
-    
+
     weak var portfolioController: PortfolioViewController?
 
     var app: AppDelegate {
@@ -30,52 +22,77 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
     
     func update(account: Account?) {
 
-        chartScrollView.delegate = self
-
-        change.text = "-"
-
         if let _ = app.credentials, account = account {
-            value.text = account.value.currency
-//            value.text = "$000,000.00"
 
-            change.text = ""
-            percentLabel.text = ""
-            if let changeValue = account.change {
-                change.text = "\(account.change > 0 ? "+" : "")\(account.change?.currency ?? "-")"
-                percentLabel.text = "\(changeValue > 0 ? "+" : "")\(String(format: "%.2f", 100 * changeValue / (account.value - changeValue)))%"
-            }
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.alignment = NSTextAlignment.Center
 
-            change.textColor = UIColor.blackColor()
+            let attributedString = NSMutableAttributedString(
+                string: "Your portfolio is \(account.change < 0 ? "down" : "up") ",
+                attributes: [
+                    NSForegroundColorAttributeName: UIColor.blackColor(),
+                    NSFontAttributeName: UIFont.systemFontOfSize(16),
+                    NSParagraphStyleAttributeName: paragraphStyle
+                ]
+            )
+
+            var changeColor = UIColor.blackColor()
             if account.change < 0 {
-                change.textColor = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
+                changeColor = UIColor(red: CGFloat(255.0/255), green: CGFloat(47.0/255), blue: CGFloat(115.0/255), alpha: 1)
             }
             else {
-                change.textColor = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
+                changeColor = UIColor(red: CGFloat(77.0/255), green: CGFloat(195.0/255), blue: CGFloat(33.0/255), alpha: 1)
             }
-            percentLabel.textColor = change.textColor
 
-            portfolio.hidden = false
-            today.hidden = false
+            let changeString = NSAttributedString(
+                string: "\(String(format: "%.2f", abs(100 * account.change! / (account.value - account.change!))))%",
+                attributes: [
+                    NSForegroundColorAttributeName: changeColor,
+                    NSFontAttributeName: UIFont.systemFontOfSize(17),
+                    NSParagraphStyleAttributeName: paragraphStyle
+                ]
+            )
+            attributedString.appendAttributedString(changeString)
+
+            let todayString = NSAttributedString(
+                string: " today\n",
+                attributes: [
+                    NSForegroundColorAttributeName: UIColor.blackColor(),
+                    NSFontAttributeName: UIFont.systemFontOfSize(16),
+                    NSParagraphStyleAttributeName: paragraphStyle
+                ]
+            )
+            attributedString.appendAttributedString(todayString)
+
+            let valueString = NSAttributedString(
+                string: account.value.currency,
+                attributes: [
+                    NSForegroundColorAttributeName: UIColor.blackColor(),
+                    NSFontAttributeName: UIFont.boldSystemFontOfSize(16),
+                    NSParagraphStyleAttributeName: paragraphStyle
+                ]
+            )
+            attributedString.appendAttributedString(valueString)
+
+            let assetsString = NSAttributedString(
+                string: " in assets",
+                attributes: [
+                    NSForegroundColorAttributeName: UIColor.blackColor(),
+                    NSFontAttributeName: UIFont.systemFontOfSize(17),
+                    NSParagraphStyleAttributeName: paragraphStyle
+                ]
+            )
+            attributedString.appendAttributedString(assetsString)
+
+
+            textView.attributedText = attributedString
         }
         else {
-            value.text = "Tap to Sync"
-            change.text = "sensitive data hidden"
-            change.textColor = UIColor.blackColor()
-
-            portfolio.hidden = true
-            today.hidden = true
+            textView.text = "Sensitive data is hidden\nTap to sync"
         }
 
         if let _ = app.credentials, account = account {
-            chartScrollView.hidden = false
-            chartScrollView.contentSize.width = pieChartView.frame.size.width + lineChartView.frame.size.width
-            createLineChart(account)
             createPieChart(account)
-            pageControl.hidden = false
-        }
-        else {
-            chartScrollView.hidden = true
-            pageControl.hidden = true
         }
     }
 
@@ -85,11 +102,11 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         pieChartView.descriptionText = ""
         pieChartView.usePercentValuesEnabled = true
         pieChartView.drawHoleEnabled = true
-        pieChartView.transparentCircleRadiusPercent = 0.41
-        pieChartView.holeRadiusPercent = 0.38
+        pieChartView.transparentCircleRadiusPercent = 0.47
+        pieChartView.holeRadiusPercent = 0.45
         pieChartView.rotationEnabled = false
-        pieChartView.userInteractionEnabled = false
-        pieChartView.setExtraOffsets(left: 0, top: 0, right: 0, bottom: 22)
+        pieChartView.userInteractionEnabled = true
+        pieChartView.setExtraOffsets(left: 0, top: 0, right: 0, bottom: 14)
 
         var ratios: [ChartDataEntry] = []
         var names: [String] = []
@@ -98,13 +115,13 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         let positions = account.positions
 
         let ratio = account.cash / account.value
-        names.append(ratio > 0.1 ? "Cash" : "")
+        names.append("")
         colors.append(PortfolioViewController.green)
         ratios.append(ChartDataEntry(value: ratio, xIndex: 0))
 
         for (index, position) in positions.enumerate() {
             let ratio = (position.price * position.quantity) / account.value
-            names.append(ratio > 0.1 ? position.symbol : "")
+            names.append("")
             colors.append(PortfolioViewController.colors[index % PortfolioViewController.colors.count])
             ratios.append(ChartDataEntry(value: ratio, xIndex: index+1))
         }
@@ -114,87 +131,52 @@ class SummaryCell: UITableViewCell, ChartViewDelegate, UIScrollViewDelegate {
         pieChartDataSet.sliceSpace = 1
         pieChartDataSet.valueTextColor = UIColor.whiteColor()
         pieChartDataSet.drawValuesEnabled = false
-        pieChartDataSet.selectionShift = 6
+        pieChartDataSet.selectionShift = 4
 
         let pieChartData = PieChartData(xVals: names, dataSet: pieChartDataSet)
         pieChartView.data = pieChartData
     }
 
-    func createLineChart(account: Account?) {
+    func chartValueSelected(chartView: ChartViewBase, entry: ChartDataEntry, dataSetIndex: Int, highlight: ChartHighlight) {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = NSTextAlignment.Center
 
-        var dataSets: [LineChartDataSet] = []
-        var names = [String]()
-
-        var colors = [UIColor]()
-
-        if let historical = YahooClient.historicalData["Portfolio"] {
-            var dataEntries: [ChartDataEntry] = []
-            for (i, data) in historical.enumerate() {
-                let dataEntry = ChartDataEntry(value: data.close, xIndex: i)
-                dataEntries.append(dataEntry)
-                names.append(data.date)
-            }
-            dataSets.append(LineChartDataSet(yVals: dataEntries, label:"Portfolio"))
-            colors.append(PortfolioViewController.blue)
+        var text = ""
+        var color = UIColor.blackColor()
+        if entry.xIndex == 0 {
+            text = "Cash"
+            color = PortfolioViewController.green
+        }
+        else {
+            let position = portfolioController?.account?.positions[entry.xIndex-1]
+            text = position!.symbol
+            color = PortfolioViewController.colors[(entry.xIndex-1) % PortfolioViewController.colors.count]
         }
 
-        for (i, set) in dataSets.enumerate() {
-            set.drawCubicEnabled = true
-            set.cubicIntensity = 0.1
-            set.lineWidth = 2.3
-            set.drawCirclesEnabled = false
-            set.drawHorizontalHighlightIndicatorEnabled = false
-            set.drawValuesEnabled = false
+        let attributedText = NSMutableAttributedString(
+            string: "\(text)\n",
+            attributes: [
+                NSForegroundColorAttributeName: color,
+                NSFontAttributeName: UIFont.boldSystemFontOfSize(16),
+                NSParagraphStyleAttributeName: paragraphStyle
+            ]
+        )
 
-            set.setCircleColor(colors[i])
-            set.setColor(colors[i])
-        }
+        let percentText = NSMutableAttributedString(
+            string: "\(String(format: "%.0f", entry.value*100))%",
+            attributes: [
+                NSForegroundColorAttributeName: UIColor.blackColor(),
+                NSFontAttributeName: UIFont.boldSystemFontOfSize(10),
+                NSParagraphStyleAttributeName: paragraphStyle
+            ]
+        )
+        attributedText.appendAttributedString(percentText)
 
-        if names.count > 2 {
-            names[0] = ""
-            names[names.count-2] = ""
-        }
-
-        let formatter = NSNumberFormatter()
-        formatter.numberStyle = NSNumberFormatterStyle.PercentStyle
-        formatter.locale = NSLocale.currentLocale()
-
-        let lineChartData = LineChartData(xVals: names, dataSets: dataSets)
-        lineChartView.data = lineChartData
-        lineChartView.legend.enabled = false
-        lineChartView.legend.position = .LeftOfChart
-        lineChartView.legend.form = .Circle
-        lineChartView.legend.formSize = 4
-        lineChartView.legend.yOffset = 188
-        lineChartView.legend.font = UIFont.systemFontOfSize(8)
-        lineChartView.userInteractionEnabled = false
-        lineChartView.descriptionText = ""
-        lineChartView.leftAxis.enabled = true
-        lineChartView.leftAxis.valueFormatter = formatter
-        lineChartView.leftAxis.labelFont = UIFont.systemFontOfSize(8)
-        lineChartView.leftAxis.drawTopYLabelEntryEnabled = false
-        lineChartView.leftAxis.setLabelCount(2, force: true)
-        lineChartView.leftAxis.labelPosition = .InsideChart
-        lineChartView.leftAxis.drawLimitLinesBehindDataEnabled = false
-        lineChartView.leftAxis.drawGridLinesEnabled = false
-        lineChartView.leftAxis.drawAxisLineEnabled = false
-        lineChartView.leftAxis.drawZeroLineEnabled = false
-        lineChartView.rightAxis.enabled = false
-        lineChartView.drawGridBackgroundEnabled = false
-        lineChartView.drawBordersEnabled = false
-        lineChartView.xAxis.enabled = false
-        lineChartView.xAxis.drawGridLinesEnabled = false
-        lineChartView.xAxis.drawAxisLineEnabled = false
-        lineChartView.xAxis.labelFont = UIFont.systemFontOfSize(8)
-        lineChartView.xAxis.labelPosition = .Bottom
-        lineChartView.setViewPortOffsets(left: 0, top: 0, right: 0, bottom: 22)
-        lineChartView.leftAxis.startAtZeroEnabled = false
+        pieChartView.centerAttributedText = attributedText
     }
 
-    func scrollViewDidScroll(scrollView: UIScrollView) {
-        pageControl.currentPage = Int(scrollView.contentOffset.x) / Int(scrollView.frame.size.width / 2)
-        portfolioController?.summaryPie = pageControl.currentPage == 1
-        portfolioController?.tableView.reloadData()
+    func chartValueNothingSelected(chartView: ChartViewBase) {
+        pieChartView.centerText = ""
     }
-    
+
 }
